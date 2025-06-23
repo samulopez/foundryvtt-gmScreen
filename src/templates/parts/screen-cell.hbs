@@ -43,7 +43,7 @@
   </div>
 
   <div class="gm-screen-grid-cell-content-wrapper">
-    <div class="gm-screen-grid-cell-content">
+    <div class="gm-screen-grid-cell-content {{#unless (or (eq this.type 'JournalEntry') (eq this.type 'RollTable'))}}app window-app{{/unless}}">
       {{!-- Contents injected in GmScreenApplication.activateListeners --}}
       {{#if @root/isGM}}
       {{#unless this.entityUuid}}

@@ -1,5 +1,9 @@
-import { GmScreenConfig, GmScreenGrid, GmScreenGridEntry } from '../gridTypes';
-import { MODULE_ABBREV, MODULE_ID, MySettings, numberRegex } from './constants';
+import { GmScreenConfig, GmScreenGridEntry } from '../gridTypes';
+import { MODULE_ABBREV, MODULE_ID, numberRegex } from './constants';
+
+type LocalizationHelper = {
+  localize: (key: string) => string;
+};
 
 export function log(force: boolean, ...args) {
   const shouldLog = force || getGame().modules.get('_dev-mode')?.api?.getPackageDebugValue(MODULE_ID);
@@ -20,18 +24,18 @@ export function getUserCellConfigurationInput(
     newSpanRows: number;
     newSpanCols: number;
   }>((resolve, reject) => {
-    new Dialog({
-      title: getGame().i18n.localize(`${MODULE_ABBREV}.cellConfigDialog.CellConfig`),
+    new foundry.appv1.api.Dialog({
+      title: getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.CellConfig`),
       content: `
   <form class="flexcol">
     <div class="form-group">
-      <label for="spanRows">${getGame().i18n.localize(`${MODULE_ABBREV}.cellConfigDialog.RowSpan`)}</label>
+      <label for="spanRows">${getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.RowSpan`)}</label>
       <input type="number" step="1" name="spanRows" min="1" max="${gridDetails.rows + 1 - cellToConfigure.y}" value="${
         cellToConfigure.spanRows || 1
       }">
     </div>
     <div class="form-group">
-      <label for="spanCols">${getGame().i18n.localize(`${MODULE_ABBREV}.cellConfigDialog.ColSpan`)}</label>
+      <label for="spanCols">${getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.ColSpan`)}</label>
       <input type="number" step="1" name="spanCols" min="1" max="${
         gridDetails.columns + 1 - cellToConfigure.x
       }" value="${cellToConfigure.spanCols || 1}">
@@ -41,11 +45,11 @@ export function getUserCellConfigurationInput(
       buttons: {
         no: {
           icon: '<i class="fas fa-times"></i>',
-          label: getGame().i18n.localize('Cancel'),
+          label: getLocalization().localize('Cancel'),
         },
         reset: {
           icon: '<i class="fas fa-undo"></i>',
-          label: getGame().i18n.localize('Default'),
+          label: getLocalization().localize('Default'),
           callback: (html: JQuery<HTMLElement>) => {
             const formValues = {
               newSpanRows: 1,
@@ -59,7 +63,7 @@ export function getUserCellConfigurationInput(
         },
         yes: {
           icon: '<i class="fas fa-check"></i>',
-          label: getGame().i18n.localize('Submit'),
+          label: getLocalization().localize('Submit'),
           callback: (html: JQuery<HTMLElement>) => {
             const formValues = {
               newSpanRows: Number(html.find('[name="spanRows"]').val()),
@@ -172,9 +176,19 @@ export function updateCSSPropertyVariable(
   });
 }
 
-export function getGame(): Game {
-  if (!(game instanceof Game)) {
+export function getGame(): foundry.Game {
+  if (!(game instanceof foundry.Game)) {
     throw new Error('game is not initialized yet!');
   }
   return game;
+}
+
+export function getLocalization(): LocalizationHelper {
+  const { i18n } = getGame();
+  if (!i18n) {
+    return {
+      localize: (key: string) => key,
+    };
+  }
+  return i18n;
 }

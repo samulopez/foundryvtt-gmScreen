@@ -1,8 +1,9 @@
 /* MODULE SPECIFIC OVERRIDES */
 
 .gm-screen-app {
-  .journal-sheet form .cm-s-easymde {
+  .journal-sheet {
     height: 100%;
+    min-height: unset;
   }
 
   /* One Journal */

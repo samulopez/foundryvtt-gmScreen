@@ -18,6 +18,7 @@ export interface GmScreenGridEntry {
   spanRows?: number;
   spanCols?: number;
   entityUuid?: string;
+  type?: 'JournalEntry' | 'Actor' | 'Item' | 'RollTable';
   entryId: string;
 }
 

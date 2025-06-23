@@ -8,11 +8,6 @@ interface GmScreenConfig1 {
   };
 }
 
-interface MigratedSetting {
-  status: boolean;
-  version: string;
-}
-
 export async function _gmScreenMigrate() {
   if (!getGame().user?.isGM) return;
   const NEEDS_MIGRATION_VERSION = '2.0.1';
@@ -24,7 +19,7 @@ export async function _gmScreenMigrate() {
   // If we have migrated before
   if (migrated.status) {
     // If our version is newer than the NEEDS_MIGRATION_VERSION
-    if (isNewerVersion(getGame().modules.get(MODULE_ID)?.data.version ?? '0', NEEDS_MIGRATION_VERSION)) return;
+    if (foundry.utils.isNewerVersion(getGame().modules.get(MODULE_ID)?.version ?? '0', NEEDS_MIGRATION_VERSION)) return;
     // If we are on the same version, but have migrated.
     if (migrated.version === NEEDS_MIGRATION_VERSION) return;
   }

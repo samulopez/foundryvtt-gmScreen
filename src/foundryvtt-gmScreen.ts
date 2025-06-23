@@ -1,10 +1,11 @@
 // Import TypeScript modules
 import { MODULE_ABBREV, MODULE_ID, MyHooks, MySettings, TEMPLATES } from './module/constants';
 import { GmScreenSettings } from './module/classes/GmScreenSettings';
-import { getGame, getUserViewableGrids, log } from './module/helpers';
+import { getGame, getLocalization, getUserViewableGrids, log } from './module/helpers';
 import { GmScreenApplication } from './module/classes/GmScreenApplication';
 import { _gmScreenMigrate } from './module/migration';
-import { GmScreenApi, GmScreenConfig } from './gridTypes';
+import { GmScreenApi } from './gridTypes';
+import './foundryvtt-gmScreen.scss';
 
 let gmScreenInstance: GmScreenApplication;
 
@@ -13,7 +14,7 @@ function toggleGmScreenOpen(isOpen?: boolean) {
 
   const userViewableGrids = getUserViewableGrids(gmScreenConfig);
   if (!Object.keys(userViewableGrids).length) {
-    ui.notifications?.notify(getGame().i18n.localize(`${MODULE_ABBREV}.warnings.noGrids`), 'error');
+    ui.notifications?.notify(getLocalization().localize(`${MODULE_ABBREV}.warnings.noGrids`), 'error');
     return;
   }
 
@@ -27,14 +28,12 @@ function toggleGmScreenOpen(isOpen?: boolean) {
     gmScreenInstance = new GmScreenApplication();
   }
 
-  // @ts-ignore
-  const shouldOpen = isOpen ?? (gmScreenInstance._state < 1 ? true : false);
+  const shouldOpen = isOpen ?? (gmScreenInstance.state < 1 ? true : false);
 
   try {
     if (shouldOpen) {
       gmScreenInstance.render(true);
-      //@ts-ignore
-      if (gmScreenInstance._minimized) {
+      if (gmScreenInstance.minimized) {
         gmScreenInstance.maximize();
       }
       gmScreenInstance.bringToTop();
@@ -73,7 +72,7 @@ Handlebars.registerHelper(`${MODULE_ABBREV}-case`, function (value, options) {
 });
 
 Handlebars.registerHelper(`${MODULE_ABBREV}-enrich`, function (str) {
-  return TextEditor.enrichHTML(str);
+  return foundry.applications.ux.TextEditor.implementation.enrichHTML(str);
 });
 
 /* ------------------------------------ */
@@ -86,7 +85,7 @@ Hooks.once('init', async function () {
   GmScreenSettings.init();
 
   // Preload Handlebars templates
-  await loadTemplates(Object.values(flattenObject(TEMPLATES)));
+  await foundry.applications.handlebars.loadTemplates(Object.values(foundry.utils.flattenObject(TEMPLATES)));
 });
 
 /* ------------------------------------ */
@@ -139,19 +138,21 @@ Hooks.once('ready', async function () {
     getGame().settings.set(MODULE_ID, MySettings.reset, false);
   }
 
+  //@ts-expect-error
   Hooks.callAll(MyHooks.ready);
 });
 
 function _addGmScreenButton(html) {
-  const actionButtons = html.find('.action-buttons');
+  const jHTML = $(html);
+  const actionButtons = jHTML.find('.action-buttons');
 
   const gmScreenButtonHtml = `<button class="gm-screen-button">
-          <i class="fas fa-book-reader"></i> ${getGame().i18n.localize(`${MODULE_ABBREV}.gmScreen.Open`)}
+          <i class="fas fa-book-reader"></i> ${getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Open`)}
       </button>`;
 
   actionButtons.append(gmScreenButtonHtml);
 
-  const gmScreenButton = html.find('button.gm-screen-button');
+  const gmScreenButton = jHTML.find('button.gm-screen-button');
 
   gmScreenButton.on('click', (event) => {
     event.preventDefault();
@@ -168,68 +169,28 @@ Hooks.on('renderJournalDirectory', (app, html, data) => {
 });
 
 // when gm screen in non-drawer mode is closed call MyHooks.openClose with isOpen: false
+//@ts-expect-error
 Hooks.on('closeGmScreenApplication', (app, html, data) => {
   const displayDrawer = getGame().settings.get(MODULE_ID, MySettings.displayDrawer);
 
   if (!displayDrawer) {
+    //@ts-expect-error
     Hooks.callAll(MyHooks.openClose, app, { isOpen: false });
   }
 });
 
 // when gm screen in non-drawer mode is opened call MyHooks.openClose with isOpen: true
+//@ts-expect-error
 Hooks.on('renderGmScreenApplication', (app, html, data) => {
   const displayDrawer = getGame().settings.get(MODULE_ID, MySettings.displayDrawer);
 
   if (!displayDrawer) {
+    //@ts-expect-error
     Hooks.callAll(MyHooks.openClose, app, { isOpen: true });
   }
 });
 
+//@ts-expect-error
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
   registerPackageDebugFlag(MODULE_ID);
-});
-
-/* Entity Sheet Override */
-
-Hooks.on('renderEntitySheetConfig', async (app, html, data) => {
-  if (!getGame().user?.isGM) {
-    return;
-  }
-
-  const htmlToInject = await renderTemplate(TEMPLATES['entitySheetInjection'], {
-    ...data,
-    gmScreenSheetClass: app.object.getFlag(MODULE_ID, 'gmScreenSheetClass'),
-  });
-
-  log(false, 'rendering entity sheet config', {
-    htmlToInject,
-    target: html.find('[name=submit]'),
-    current: app.object.getFlag(MODULE_ID, 'gmScreenSheetClass'),
-  });
-
-  html.find('[name=submit]').before(htmlToInject);
-
-  html.on('change', 'select[name=gmScreenSheetClass]', (event) => {
-    log(false, 'custom change listener firing', {
-      event,
-      value: event.target.value,
-    });
-    app.object.setFlag(MODULE_ID, 'gmScreenSheetClass', event.target.value);
-  });
-
-  app.setPosition({ height: 'auto' });
-});
-
-/**
- * Hacky way to ensure our drawer stays in the right place as the sidebar collapses and uncollapses
- */
-Hooks.on('collapseSidebar', () => {
-  const uiRight = document.querySelector('#ui-right');
-  if (!uiRight) {
-    return;
-  }
-
-  const uiRightStyles = getComputedStyle(uiRight);
-
-  document.querySelector('body')?.style.setProperty('--gm-screen-ui-right-width', uiRightStyles.width);
 });
