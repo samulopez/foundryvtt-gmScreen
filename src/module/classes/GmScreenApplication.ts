@@ -3,6 +3,7 @@ import { MODULE_ABBREV, MODULE_ID, MyHooks, MySettings, TEMPLATES } from '../con
 import {
   getGame,
   getGridElementsPosition,
+  getLocalization,
   getUserCellConfigurationInput,
   getUserViewableGrids,
   log,
@@ -22,9 +23,19 @@ enum ClickAction {
   'setActiveGridId' = 'setActiveGridId',
 }
 
-type GmScreenApp = ActorSheet | ItemSheet | JournalSheet | RollTableConfig;
+type CustomOptions = {
+  cellId: string;
+  _injectHTML(html: JQuery): void;
+  _replaceHTML(element: JQuery, html: JQuery): void;
+};
 
-export class GmScreenApplication extends Application {
+type GmScreenApp =
+  | (ActorSheet & { render: (force?: boolean) => void })
+  | (ItemSheet & { render: (force?: boolean) => void })
+  | (foundry.applications.sheets.journal.JournalEntrySheet & { render: (force?: boolean) => void })
+  | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void });
+
+export class GmScreenApplication extends foundry.appv1.api.Application {
   expanded: boolean;
   data: GmScreenConfig;
   apps: Record<string, GmScreenApp>;
@@ -56,6 +67,14 @@ export class GmScreenApplication extends Application {
     return !!Object.keys(this.userViewableGrids).length;
   }
 
+  get state() {
+    return this._state;
+  }
+
+  get minimized() {
+    return this._minimized;
+  }
+
   static get defaultOptions() {
     const columns = getGame().settings.get(MODULE_ID, MySettings.columns);
     const rows = getGame().settings.get(MODULE_ID, MySettings.rows);
@@ -72,7 +91,7 @@ export class GmScreenApplication extends Application {
       width: Number(columns) * 400,
       height: Number(rows) * 300,
       resizable: true,
-      title: getGame().i18n.localize(`${MODULE_ABBREV}.gmScreen.Title`),
+      title: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Title`),
     };
 
     const gmOptions = {
@@ -136,7 +155,7 @@ export class GmScreenApplication extends Application {
   async setGridData(newGridData: GmScreenGrid, render: boolean = true) {
     const newGmScreenConfig = foundry.utils.deepClone(this.data);
 
-    const updated = setProperty(newGmScreenConfig, `grids.${newGridData.id}`, newGridData);
+    const updated = foundry.utils.setProperty(newGmScreenConfig, `grids.${newGridData.id}`, newGridData);
 
     if (!updated) {
       // something failed
@@ -235,6 +254,7 @@ export class GmScreenApplication extends Application {
       $('.gm-screen-app').addClass('expanded');
 
       // on open, call MyHooks.openClose with isOpen: true and the active grid details
+      // @ts-expect-error
       Hooks.callAll(MyHooks.openClose, this, {
         isOpen: true,
         ...activeGridDetails,
@@ -244,6 +264,7 @@ export class GmScreenApplication extends Application {
       delete ui.windows[this.appId]; // remove our window to the stack, pretending we are a closed Application
 
       // on open, call MyHooks.openClose with isOpen: false and the active grid details
+      // @ts-expect-error
       Hooks.callAll(MyHooks.openClose, this, {
         isOpen: false,
         ...activeGridDetails,
@@ -257,9 +278,9 @@ export class GmScreenApplication extends Application {
   handleClear() {
     log(false, 'handleClear');
 
-    Dialog.confirm({
-      title: getGame().i18n.localize(`${MODULE_ABBREV}.warnings.clearConfirm.Title`),
-      content: getGame().i18n.localize(`${MODULE_ABBREV}.warnings.clearConfirm.Content`),
+    foundry.appv1.api.Dialog.confirm({
+      title: getLocalization().localize(`${MODULE_ABBREV}.warnings.clearConfirm.Title`),
+      content: getLocalization().localize(`${MODULE_ABBREV}.warnings.clearConfirm.Content`),
       yes: async () => {
         this.apps = {};
         this.setGridData({
@@ -479,6 +500,14 @@ export class GmScreenApplication extends Application {
     }
   }
 
+  // This can be removed when GmScreenApplication is migrated to ApplicationV2
+  removeV12ThemesAndFixButtons() {
+    const html = $('#gm-screen-app');
+    html.removeClass('app themed theme-light').addClass('application');
+
+    html.find('.window-title').append(html.find('.gm-screen-actions'));
+  }
+
   /**
    * @override
    */
@@ -493,7 +522,7 @@ export class GmScreenApplication extends Application {
   /**
    * This currently thinly wraps `this.render`, but might be more complicated in the future.
    */
-  refresh() {
+  async refresh() {
     const newData = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
     const oldData = foundry.utils.deepClone(this.data);
     const diffData: Partial<GmScreenConfig> = foundry.utils.diffObject(oldData, newData);
@@ -546,7 +575,11 @@ export class GmScreenApplication extends Application {
       }
     }
 
-    this.render();
+    if (!this.displayDrawer) {
+      await this.close();
+    }
+
+    this.render(true);
   }
 
   /**
@@ -596,6 +629,7 @@ export class GmScreenApplication extends Application {
     }
 
     this.injectCellContents(html);
+    this.removeV12ThemesAndFixButtons();
 
     // populate the --grid-cell-width variable
     const vanillaGridElement = document.querySelector('.gm-screen-grid');
@@ -656,23 +690,14 @@ export class GmScreenApplication extends Application {
       return;
     }
 
-    const gmScreenSpecificSheetFlag = relevantDocument.getFlag(MODULE_ID, 'gmScreenSheetClass') as string | undefined;
-
     /* If there is an old app here which isn't this entity's, destroy it */
-    if (this.apps[cellId] && this.apps[cellId]?.object.uuid !== entityUuid) {
+    if (this.apps[cellId] && this.apps[cellId]?.document.uuid !== entityUuid) {
       await this.apps[cellId].close();
       delete this.apps[cellId];
     }
 
     const sheet = relevantDocument.sheet;
-
     let sheetClass = sheet?.constructor;
-
-    if (gmScreenSpecificSheetFlag && (relevantDocument instanceof Item || relevantDocument instanceof Actor)) {
-      const gmScreenSpecificSheetConstructor =
-        CONFIG[relevantDocument.documentName]?.sheetClasses?.[relevantDocument.type]?.[gmScreenSpecificSheetFlag]?.cls;
-      sheetClass = gmScreenSpecificSheetConstructor ?? sheetClass;
-    }
 
     /* If the currently cached sheet class does not match the sheet class, destroy it */
     if (this.apps[cellId] && this.apps[cellId].constructor.name !== sheetClass?.name) {
@@ -695,34 +720,48 @@ export class GmScreenApplication extends Application {
       name: sheetClass?.name,
     });
 
-    if (sheet instanceof JournalSheet && !sheet?.isKankaEntry) {
+    if (sheet instanceof foundry.applications.sheets.journal.JournalEntrySheet) {
       log(false, `creating compact journal entry for "${relevantDocument.name}"`, {
         cellId,
       });
 
-      this.apps[cellId] = new CompactJournalEntryDisplay(relevantDocument, { cellId, editable: false });
-    } else if (sheet instanceof RollTableConfig) {
+      this.apps[cellId] = new CompactJournalEntryDisplay({
+        document: relevantDocument,
+        editable: false,
+        popOut: false,
+        cellId,
+      });
+    } else if (sheet instanceof foundry.applications.sheets.RollTableSheet) {
       log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
         cellId,
       });
 
-      this.apps[cellId] = new CompactRollTableDisplay(relevantDocument, { cellId });
+      this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
     } else {
+      if (!sheetClass) {
+        log(true, 'no sheet class found for relevantDocument', {
+          relevantDocument,
+          entityUuid,
+        });
+        return;
+      }
       log(false, `creating compact generic for "${relevantDocument.name}"`, {
         cellId,
       });
 
-      //@ts-ignore
-      const CompactDocumentSheet: ItemSheet | ActorSheet = new sheetClass(relevantDocument, {
-        editable: false,
-      });
+      //@ts-expect-error
+      const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) = new sheetClass(
+        relevantDocument,
+        {
+          width: '100%',
+          height: '100%',
+        }
+      );
 
       CompactDocumentSheet.options.editable = false;
       CompactDocumentSheet.options.popOut = false;
-      //@ts-ignore
       CompactDocumentSheet.cellId = cellId;
 
-      //@ts-ignore
       CompactDocumentSheet._injectHTML = function (html) {
         $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
 
@@ -735,15 +774,20 @@ export class GmScreenApplication extends Application {
           html,
         });
         gridCellContent.append(html);
+        gridCellContent.find('form').wrap("<div class='window-content'></div>");
         this._element = html;
       };
 
-      //@ts-ignore
-      CompactDocumentSheet._replaceHTML = function (element, html, options) {
+      CompactDocumentSheet._replaceHTML = function (element, html) {
         $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
 
         const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-        gridCellContent.html(html);
+        const pureHTML = html.get(0);
+        if (!pureHTML) {
+          return;
+        }
+        gridCellContent.html(pureHTML);
+        gridCellContent.find('form').wrap("<div class='window-content'></div>");
         this._element = html;
       };
 
@@ -772,7 +816,7 @@ export class GmScreenApplication extends Application {
           log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry });
 
           this.getCellApplicationClass(relevantUuid, cellId)
-            .then((application) => {
+            .then(async (application) => {
               log(false, `got application for "${cellId}"`, {
                 application,
               });
@@ -819,7 +863,7 @@ export class GmScreenApplication extends Application {
 
     return Object.values(this.userViewableGrids).reduce<
       Record<string, { grid: GmScreenGrid; gridEntries: Partial<GmScreenGridEntry>[] }>
-    >((acc, grid) => {
+    >((acc, grid: GmScreenGrid) => {
       const gridColumns = grid.columnOverride ?? this.columns;
       const gridRows = grid.rowOverride ?? this.rows;
 
@@ -879,7 +923,7 @@ export class GmScreenApplication extends Application {
 
     const gmButtons = [
       {
-        label: getGame().i18n.localize(`${MODULE_ABBREV}.gmScreen.Reset`),
+        label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Reset`),
         class: 'clear',
         icon: 'fas fa-ban',
         onclick: () => this.handleClear.bind(this)(),
@@ -889,7 +933,7 @@ export class GmScreenApplication extends Application {
     return [
       ...(getGame().user?.isGM ? gmButtons : []),
       {
-        label: getGame().i18n.localize(`${MODULE_ABBREV}.gmScreen.Refresh`),
+        label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Refresh`),
         class: 'refresh',
         icon: 'fas fa-sync',
         onclick: () => this.refresh(),
@@ -926,7 +970,7 @@ export class GmScreenApplication extends Application {
       return false;
     }
 
-    const entityUuid = `${data.pack ? `Compendium.${data.pack}` : data.type}.${data.id}`;
+    const entityUuid = data.pack ? `Compendium.${data.pack}.${data.uuid}` : data.uuid;
 
     const gridElementPosition = getGridElementsPosition($(event.target).closest('.gm-screen-grid-cell'));
     const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
@@ -935,6 +979,7 @@ export class GmScreenApplication extends Application {
       ...gridElementPosition,
       entryId: newEntryId,
       entityUuid,
+      type: data.type,
     };
 
     this.addEntryToActiveGrid(newEntry);

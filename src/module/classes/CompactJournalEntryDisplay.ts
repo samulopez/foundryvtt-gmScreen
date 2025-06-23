@@ -1,56 +1,39 @@
-import { log } from '../helpers';
-import { TEMPLATES } from '../constants';
-
-export class CompactJournalEntryDisplay extends JournalSheet {
+export class CompactJournalEntryDisplay extends foundry.applications.sheets.journal.JournalEntrySheet {
   cellId: string;
 
-  constructor(object, options) {
-    super(object, options);
+  constructor(options) {
+    super(options);
     this.cellId = options.cellId;
+    this.options.position.width = 'auto';
+    this.options.position.height = 'auto';
   }
 
   get isEditable() {
     return false;
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      editable: false,
-      popOut: false,
-    });
-  }
+  _replaceHTML(element, html, options) {
+    super._replaceHTML(element, html, options);
+    if (!this.form) {
+      return;
+    }
 
-  /** @override */
-  get template() {
-    if (this._sheetMode === 'image') return ImagePopout.defaultOptions.template;
-    return TEMPLATES.compactJournalEntry;
-  }
-
-  _replaceHTML(element, html) {
-    $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
-
-    const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-    gridCellContent.html(html);
-    this._element = html;
-  }
-
-  _injectHTML(html) {
     $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
 
     const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
 
-    log(false, 'CompactJournalEntryDisplay _injectHTML', {
-      cellId: this.cellId,
-      gridCellContent,
-      html,
+    gridCellContent.html(this.form);
+    gridCellContent.find('.window-header').remove();
+    this.setPosition({
+      width: 'auto',
+      height: 'auto',
+      left: 0,
+      top: 0,
     });
-
-    gridCellContent.append(html);
-    this._element = html;
   }
 
   /** @override */
   get id() {
-    return `gmscreen-journal-${this.object.id}`;
+    return `gmscreen-journal-${this.document.id}`;
   }
 }

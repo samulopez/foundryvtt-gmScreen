@@ -1,6 +1,6 @@
 import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
-import { getGame, log } from '../helpers';
-import { GmScreenConfig, GmScreenGrid } from '../../gridTypes';
+import { getGame, getLocalization, log } from '../helpers';
+import { GmScreenConfig } from '../../gridTypes';
 
 const defaultGmScreenConfig: GmScreenConfig = {
   activeGridId: 'default',
@@ -14,7 +14,11 @@ const defaultGmScreenConfig: GmScreenConfig = {
   },
 };
 
-export class GmScreenSettings extends FormApplication {
+export class GmScreenSettings extends foundry.appv1.api.FormApplication {
+  constructor(object = {}, options = {}) {
+    super(object, options);
+  }
+
   static init() {
     getGame().settings.registerMenu(MODULE_ID, 'menu', {
       name: `${MODULE_ABBREV}.settings.${MySettings.gmScreenConfig}.Name`,
@@ -27,7 +31,6 @@ export class GmScreenSettings extends FormApplication {
 
     getGame().settings.register(MODULE_ID, MySettings.gmScreenConfig, {
       default: defaultGmScreenConfig,
-      type: defaultGmScreenConfig.constructor as ConstructorOf<GmScreenConfig>,
       scope: 'world',
       config: false,
       onChange: function (...args) {
@@ -44,7 +47,7 @@ export class GmScreenSettings extends FormApplication {
       config: false,
       default: { status: false, version: '1.2.2' },
       scope: 'world',
-      type: Object as unknown as ConstructorOf<{ status: boolean; version: string }>,
+      type: Object,
     });
 
     getGame().settings.register(MODULE_ID, MySettings.columns, {
@@ -149,7 +152,7 @@ export class GmScreenSettings extends FormApplication {
       submitOnClose: false,
       id: 'gm-screen-tabs-config',
       template: TEMPLATES.settings,
-      title: getGame().i18n.localize(`${MODULE_ABBREV}.gridConfig.GridConfig`),
+      title: getLocalization().localize(`${MODULE_ABBREV}.gridConfig.GridConfig`),
       width: 600,
     };
   }
@@ -234,7 +237,7 @@ export class GmScreenSettings extends FormApplication {
       const tbodyElement = $(html).find('tbody');
 
       const newGridRowTemplateData = {
-        gridId: randomID(),
+        gridId: foundry.utils.randomID(),
         grid: {
           name: '',
           columnOverride: '',
@@ -244,7 +247,9 @@ export class GmScreenSettings extends FormApplication {
         defaultRows: this.rows,
       };
 
-      const newRow = $(await renderTemplate(TEMPLATES[table].tableRow, newGridRowTemplateData));
+      const newRow = $(
+        await foundry.applications.handlebars.renderTemplate(TEMPLATES[table].tableRow, newGridRowTemplateData)
+      );
       // render a new row at the end of tbody
       tbodyElement.append(newRow);
       this.setPosition({}); // recalc height
@@ -292,7 +297,7 @@ export class GmScreenSettings extends FormApplication {
   async _updateObject(ev, formData) {
     const gmScreenConfig = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
 
-    const data = expandObject(formData);
+    const data = foundry.utils.expandObject(formData) as GmScreenConfig;
 
     log(false, {
       formData,
@@ -300,7 +305,7 @@ export class GmScreenSettings extends FormApplication {
     });
 
     if (Object.keys(data).length === 0) {
-      ui.notifications?.error(getGame().i18n.localize(`${MODULE_ABBREV}.gridConfig.errors.empty`));
+      ui.notifications?.error(getLocalization().localize(`${MODULE_ABBREV}.gridConfig.errors.empty`));
       throw 'Cannot save the grid with no tabs.';
     }
 

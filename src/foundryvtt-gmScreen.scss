@@ -1,12 +1,13 @@
-@import './styles/variables.scss';
-@import './styles/mixins.scss';
-@import './styles/settings.scss';
+@use 'sass:meta';
+@use 'styles/variables.scss';
+@use 'styles/mixins.scss';
+@use 'styles/settings.scss';
 
 $transition-timing: 400ms;
 
 /* Expand the GM Screen Sideways when Sidebar is Collapsed */
 :root {
-  --gm-screen-ui-right-width: 310px;
+  --gm-screen-ui-right-width: 364px;
 }
 
 .gm-screen-app {
@@ -30,7 +31,7 @@ $transition-timing: 400ms;
       .gm-screen-actions {
         > *:not(.gm-screen-button) {
           transform: translateY(0);
-          transition-delay: $transition-timing / 2;
+          transition-delay: $transition-timing * 0.5;
         }
 
         button {
@@ -62,24 +63,29 @@ $transition-timing: 400ms;
         transition: transform $transition-timing ease-in;
       }
     }
+
+    > .window-content {
+      padding: 0;
+      height: 100%;
+    }
   }
 
   .gm-screen-container {
-    @include spaced-vertical($space / 2);
-    padding: $space / 2;
+    @include mixins.spaced-vertical(variables.$space * 0.5);
+    padding: variables.$space * 0.5;
+    height: 100%;
   }
 
   .gm-screen-actions {
-    @include spaced($space / 2);
+    @include mixins.spaced(variables.$space * 0.5);
 
     display: flex;
     width: 100%;
-    padding: 0 $space;
+    padding: 0 variables.$space;
     pointer-events: none;
     justify-content: flex-start;
 
     button {
-      background: rgba(255, 255, 240, 0.7);
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
       border: 0;
@@ -88,6 +94,7 @@ $transition-timing: 400ms;
       pointer-events: all;
       white-space: nowrap;
       width: auto;
+      color: var(--color-text-dark-primary);
 
       &:focus {
         box-shadow: none;
@@ -100,23 +107,16 @@ $transition-timing: 400ms;
     }
 
     .active {
-      background: url(../../ui/parchment.jpg) repeat;
       text-shadow: none;
     }
 
-    .item:not(.active) {
-      background: rgba(255, 255, 240, 0.7) linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 50%);
-    }
-
     .meta-actions {
+      display: flex;
+      gap: variables.$space * 0.5;
       margin-left: auto;
 
       i {
         margin-right: 0;
-      }
-
-      button {
-        background: url(../../ui/parchment.jpg) repeat;
       }
     }
 
@@ -126,7 +126,7 @@ $transition-timing: 400ms;
 
     .gm-screen-tabs {
       display: flex;
-      gap: $space / 2;
+      gap: variables.$space * 0.5;
     }
   }
 
@@ -134,7 +134,7 @@ $transition-timing: 400ms;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(1, 1fr);
-    gap: $space / 2;
+    gap: variables.$space * 0.5;
     width: 100%;
     height: 100%;
   }
@@ -143,9 +143,11 @@ $transition-timing: 400ms;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: inset 0 0 $space / 2 rgba(255, 255, 255, 0.2), 0 0 $space / 2 rgba(0, 0, 0, 0.2);
+    box-shadow:
+      inset 0 0 variables.$space * 0.5 rgba(255, 255, 255, 0.2),
+      0 0 variables.$space * 0.5 rgba(0, 0, 0, 0.2);
 
-    border-radius: $space / 2;
+    border-radius: variables.$space * 0.5;
 
     &:hover {
       .gm-screen-grid-cell-hint {
@@ -155,7 +157,7 @@ $transition-timing: 400ms;
   }
 
   .gm-screen-grid-cell-title {
-    @include truncate;
+    @include mixins.truncate;
 
     flex: 1 1 100%;
     width: 100%;
@@ -164,17 +166,17 @@ $transition-timing: 400ms;
   }
 
   .gm-screen-grid-cell-hint {
-    border-radius: $space / 2;
-    border: rgba(0, 0, 0, 0.25) dashed $space / 2;
+    border-radius: variables.$space * 0.5;
+    border: rgba(0, 0, 0, 0.25) dashed variables.$space * 0.5;
     display: flex;
     margin: auto;
     opacity: 0;
-    padding: $space;
+    padding: variables.$space;
     place-content: center;
     place-items: center;
     transition: opacity 300ms ease-in-out 500ms;
-    height: calc(100% - #{$space * 2});
-    width: calc(100% - #{$space * 2});
+    height: calc(100% - #{variables.$space * 2});
+    width: calc(100% - #{variables.$space * 2});
 
     h6 {
       font-size: 1em;
@@ -185,12 +187,12 @@ $transition-timing: 400ms;
   }
 
   .gm-screen-grid-cell-header {
-    @include spaced($space / 2);
+    @include mixins.spaced(variables.$space * 0.5);
 
     align-items: center;
     display: flex;
     width: 100%;
-    padding: $space / 5;
+    padding: variables.$space * 0.2;
     background-color: rgba(0, 0, 0, 0.1);
 
     > a {
@@ -198,7 +200,7 @@ $transition-timing: 400ms;
       flex: 0 0 auto;
       line-height: normal;
       margin: 0;
-      padding: 0 ($space / 5);
+      padding: 0 (variables.$space * 0.2);
       width: auto;
     }
   }
@@ -219,10 +221,12 @@ $transition-timing: 400ms;
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    box-shadow: inset 0 0 $space / 2 rgba(255, 255, 255, 0.2), 0 0 $space / 2 rgba(0, 0, 0, 0.2);
-    padding: 0 $space / 5;
-    border-top-left-radius: $space / 2;
-    border-top-right-radius: $space / 2;
+    box-shadow:
+      inset 0 0 variables.$space * 0.5 rgba(255, 255, 255, 0.2),
+      0 0 variables.$space * 0.5 rgba(0, 0, 0, 0.2);
+    padding: 0 variables.$space * 0.2;
+    border-top-left-radius: variables.$space * 0.5;
+    border-top-right-radius: variables.$space * 0.5;
   }
 
   .gm-screen-grid-cell-content {
@@ -291,7 +295,7 @@ $transition-timing: 400ms;
 
   .results {
     th {
-      @include spaced(0.5em);
+      @include mixins.spaced(0.5em);
     }
 
     .drawn {
@@ -333,8 +337,13 @@ $transition-timing: 400ms;
   .gm-screen-actions {
     position: absolute;
     top: 2px;
-    left: 5em;
+    left: 10em;
     width: auto;
+
+    .gm-screen-tabs {
+      display: flex;
+      gap: variables.$space * 0.5;
+    }
 
     > button {
       height: 28px;
@@ -343,4 +352,4 @@ $transition-timing: 400ms;
   }
 }
 
-@import './styles/package-overrides.scss';
+@include meta.load-css('styles/package-overrides.scss');
