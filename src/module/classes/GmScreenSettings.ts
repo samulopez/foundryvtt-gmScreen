@@ -14,11 +14,9 @@ const defaultGmScreenConfig: GmScreenConfig = {
   },
 };
 
-export class GmScreenSettings extends foundry.appv1.api.FormApplication {
-  constructor(object = {}, options = {}) {
-    super(object, options);
-  }
-
+export class GmScreenSettings extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   static init() {
     getGame().settings.registerMenu(MODULE_ID, 'menu', {
       name: `${MODULE_ABBREV}.settings.${MySettings.gmScreenConfig}.Name`,
@@ -142,19 +140,28 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
     });
   }
 
-  static get defaultOptions() {
-    return {
-      ...super.defaultOptions,
-      classes: ['gm-screen-config'],
-      closeOnSubmit: false,
-      height: 'auto' as const,
-      submitOnChange: false,
-      submitOnClose: false,
-      id: 'gm-screen-tabs-config',
+  static PARTS = {
+    content: {
       template: TEMPLATES.settings,
-      title: getLocalization().localize(`${MODULE_ABBREV}.gridConfig.GridConfig`),
-      width: 600,
-    };
+    },
+  };
+
+  static DEFAULT_OPTIONS = {
+    id: 'gm-screen-tabs-config',
+    classes: ['gm-screen-config'],
+    height: 'auto',
+    width: 600,
+    tag: 'form',
+    form: {
+      handler: GmScreenSettings.#onSubmit,
+      submitOnClose: false,
+      submitOnChange: false,
+      closeOnSubmit: true,
+    },
+  };
+
+  get title() {
+    return getLocalization().localize(`${MODULE_ABBREV}.gridConfig.GridConfig`);
   }
 
   get rows() {
@@ -177,13 +184,12 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
     };
   }
 
-  getData() {
-    const data = {
-      ...super.getData(),
+  async _prepareContext(options) {
+    const data = foundry.utils.mergeObject(options, {
       settings: this.settingsData,
       defaultRows: this.rows,
       defaultColumns: this.columns,
-    };
+    });
 
     log(false, data);
     return data;
@@ -221,21 +227,17 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
     });
   }
 
-  activateListeners(html: JQuery<any>) {
-    super.activateListeners(html);
-
+  async _onRender(context, options) {
+    const html = $(this.element);
     log(false, 'activateListeners', {
       html,
     });
-
     const handleNewRowClick = async (currentTarget: JQuery<any>) => {
       log(false, 'add row clicked', {
         data: currentTarget.data(),
       });
-
       const table = currentTarget.data().table;
       const tbodyElement = $(html).find('tbody');
-
       const newGridRowTemplateData = {
         gridId: foundry.utils.randomID(),
         grid: {
@@ -246,7 +248,6 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
         defaultColumns: this.columns,
         defaultRows: this.rows,
       };
-
       const newRow = $(
         await foundry.applications.handlebars.renderTemplate(TEMPLATES[table].tableRow, newGridRowTemplateData)
       );
@@ -254,29 +255,21 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
       tbodyElement.append(newRow);
       this.setPosition({}); // recalc height
     };
-
     const handleDeleteRowClick = (currentTarget: JQuery<any>) => {
       log(false, 'delete row clicked', {
         currentTarget,
       });
-
       currentTarget.parentsUntil('tbody').remove();
       this.setPosition({}); // recalc height
     };
-
     this._dragListeners(html);
-
     html.on('click', (e) => {
       const currentTarget = $(e.target).closest('button')[0];
-
       if (!currentTarget) {
         return;
       }
-
       const wrappedCurrentTarget = $(currentTarget);
-
       log(false, 'a button was clicked', { e, currentTarget });
-
       if (wrappedCurrentTarget.hasClass('add-row')) {
         handleNewRowClick(wrappedCurrentTarget);
       }
@@ -294,10 +287,10 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
   //   },
   // },
 
-  async _updateObject(ev, formData) {
+  static async #onSubmit(event, form, formData) {
     const gmScreenConfig = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
 
-    const data = foundry.utils.expandObject(formData) as GmScreenConfig;
+    const data = foundry.utils.expandObject(formData.object) as GmScreenConfig;
 
     log(false, {
       formData,
@@ -353,8 +346,6 @@ export class GmScreenSettings extends foundry.appv1.api.FormApplication {
 
     await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
 
-    window[MODULE_ID].refreshGmScreen();
-
-    this.close();
+    getGame().modules.get('gm-screen')?.api?.refreshGmScreen();
   }
 }
