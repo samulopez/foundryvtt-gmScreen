@@ -213,6 +213,7 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
 
     if (shouldKeepCellLayout) {
       delete clearedCell.entityUuid;
+      delete clearedCell.type;
       newEntries[entryId] = clearedCell;
     } else {
       delete newEntries[entryId];
