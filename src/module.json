@@ -2,7 +2,7 @@
   "id": "gm-screen",
   "title": "GM Screen",
   "description": "Creates a Configurable modular grid that GMs can populate with journal entries, rollable tables, etc.",
-  "version": "4.0.0",
+  "version": "4.0.1-beta.1",
   "authors": [
     {
       "name": "Andrew Krigline",
@@ -89,7 +89,7 @@
   },
   "bugs": "https://github.com/samulopez/foundryvtt-gmScreen/issues",
   "changelog": "https://github.com/samulopez/foundryvtt-gmScreen/releases",
-  "download": "https://github.com/samulopez/foundryvtt-gmScreen/releases/download/v4.0.0/module.zip",
+  "download": "https://github.com/samulopez/foundryvtt-gmScreen/releases/download/v4.0.1-beta.1/module.zip",
   "manifest": "https://github.com/samulopez/foundryvtt-gmScreen/releases/latest/download/module.json",
   "readme": "https://raw.githubusercontent.com/samulopez/foundryvtt-gmScreen/main/README.md",
   "url": "https://github.com/samulopez/foundryvtt-gmScreen"
