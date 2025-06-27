@@ -10,6 +10,7 @@ export interface GmScreenGrid {
   isShared: boolean;
   rowOverride?: number;
   columnOverride?: number;
+  cssClass: string; // used for styling the grid container
 }
 
 export interface GmScreenGridEntry {

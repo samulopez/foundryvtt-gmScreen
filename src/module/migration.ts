@@ -50,6 +50,7 @@ export async function _gmScreenMigrate() {
           id: 'default',
           name: 'Main',
           isShared: false,
+          cssClass: 'active',
         },
       },
     };

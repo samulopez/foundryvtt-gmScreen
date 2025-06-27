@@ -4,6 +4,8 @@ export const MODULE_ABBREV = 'GMSCR';
 export const TEMPLATES = {
   settings: `modules/${MODULE_ID}/templates/settings.hbs`,
   screen: `modules/${MODULE_ID}/templates/screen.hbs`,
+  screenContent: `modules/${MODULE_ID}/templates/parts/screen-content.hbs`,
+  screenTabs: `modules/${MODULE_ID}/templates/parts/screen-tabs.hbs`,
   screenCell: `modules/${MODULE_ID}/templates/parts/screen-cell.hbs`,
   screenGrid: `modules/${MODULE_ID}/templates/parts/screen-grid.hbs`,
   compactRollTable: `modules/${MODULE_ID}/templates/parts/compact-roll-table.hbs`,

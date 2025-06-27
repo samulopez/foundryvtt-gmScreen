@@ -2,14 +2,10 @@ import * as fsPromises from 'fs/promises';
 import copy from 'rollup-plugin-copy';
 import scss from 'rollup-plugin-scss';
 import { defineConfig, Plugin } from 'vite';
-import { normalizePath } from 'vite';
-import path from 'path';
 
 const moduleVersion = process.env.MODULE_VERSION;
 const githubProject = process.env.GH_PROJECT;
 const githubTag = process.env.GH_TAG;
-
-console.log(process.env.VSCODE_INJECTION);
 
 const s_MODULE_ID = 'gm-screen';
 const s_PACKAGE_ID = `modules/${s_MODULE_ID}`;
@@ -42,18 +38,16 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: normalizePath(path.resolve(__dirname, `./dist/${s_MODULE_ID}`)), // __dirname,
+    outDir: `../dist/${s_MODULE_ID}`,
     emptyOutDir: true,
     sourcemap: true,
     lib: {
       name: S_MODULE_FULLNAME,
       entry: s_ENTRY_TYPESCRIPT,
       formats: ['es'],
-      fileName: S_MODULE_FULLNAME,
     },
     rollupOptions: {
       output: {
-        dir: `./dist/${s_MODULE_ID}`,
         entryFileNames: `${S_MODULE_FULLNAME}.js`,
         format: 'es',
       },
