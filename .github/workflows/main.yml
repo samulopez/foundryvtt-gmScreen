@@ -28,6 +28,17 @@ jobs:
         working-directory: ./dist
         run: zip -r ./module.zip ./*
 
+      - name: set deployment outputs
+        id: set-pr-deploy-info
+        run: |
+          tag="${{ github.ref_name }}"
+          prerelease=false
+          # Check if the tag contains 'beta'
+          if [[ "$tag" == *"-beta."* ]]; then
+            prerelease=true
+          fi
+          echo "prerelease=$prerelease" >> $GITHUB_OUTPUT
+
       # Create a release for this specific version
       - name: Create Release
         id: create_version_release
@@ -38,7 +49,7 @@ jobs:
           body: |
             ${{ steps.changelog.outputs.clean_changelog }}
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.set-pr-deploy-info.outputs.prerelease }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: './dist/gm-screen/module.json,./dist/module.zip'
           tag: ${{ github.ref_name }}
