@@ -1,0 +1,33 @@
+<div class='gm-screen-actions sheet-tabs tabs' data-application-part="tabs" aria-roledescription="{{localize "SHEETS.FormNavLabel"}}">
+
+  <div class="gm-screen-tabs">
+    {{#each tabs as |tab|}}
+    <button type='button' data-action="tab" data-group="{{tab.group}}" data-tab="{{tab.id}}"
+        {{#if tab.cssClass}}class="{{tab.cssClass}}"{{/if}}
+        {{#if tab.tooltip}}data-tooltip="{{tab.tooltip}}"{{/if}} draggable="true">
+        {{#if tab.label}}{{localize tab.label}}{{/if}}
+    </button>
+    {{/each}}
+  </div>
+  {{#if displayDrawer}}
+  <div class="meta-actions">
+    {{#if isGM}}
+    <button class="clear" type='button' data-action="clearGrid" title={{localize 'GMSCR.gmScreen.Reset' }}><i
+        class="fas fa-ban"></i></button>
+    {{/if}}
+    <button class="refresh" type='button' data-action="refresh" title={{localize 'GMSCR.gmScreen.Refresh' }}><i
+        class="fas fa-sync"></i></button>
+  </div>
+
+  <button class="gm-screen-button" data-action="toggle-gm-screen"><i class="fas fa-book-reader"></i>
+    {{#unless condensedButton}}
+    {{#if isGM}}
+    {{localize 'GMSCR.gmScreen.Open' }}
+    {{else}}
+    {{ localize 'GMSCR.gmScreen.OpenPlayer' }}
+    {{/if}}
+    {{/unless}}
+  </button>
+  {{/if}}
+
+</div>

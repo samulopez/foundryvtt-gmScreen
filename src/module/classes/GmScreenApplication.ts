@@ -14,13 +14,13 @@ import { CompactRollTableDisplay } from './CompactRollTableDisplay';
 import { GmScreenSettings } from './GmScreenSettings';
 
 enum ClickAction {
-  'clearGrid' = 'clearGrid',
-  'refresh' = 'refresh',
-  'clearCell' = 'clearCell',
-  'configureCell' = 'configureCell',
-  'open' = 'open',
-  'toggle-gm-screen' = 'toggle-gm-screen',
-  'setActiveGridId' = 'setActiveGridId',
+  clearGrid = 'clearGrid',
+  refresh = 'refresh',
+  clearCell = 'clearCell',
+  configureCell = 'configureCell',
+  open = 'open',
+  toggleGmScreen = 'toggle-gm-screen',
+  tab = 'tab',
 }
 
 type CustomOptions = {
@@ -35,7 +35,9 @@ type GmScreenApp =
   | (foundry.applications.sheets.journal.JournalEntrySheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void });
 
-export class GmScreenApplication extends foundry.appv1.api.Application {
+export class GmScreenApplication extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   expanded: boolean;
   data: GmScreenConfig;
   apps: Record<string, GmScreenApp>;
@@ -45,7 +47,73 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     this.expanded = false;
     this.data = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
     this.apps = {};
+
+    const columns = getGame().settings.get(MODULE_ID, MySettings.columns);
+    const rows = getGame().settings.get(MODULE_ID, MySettings.rows);
+    const displayDrawer = getGame().settings.get(MODULE_ID, MySettings.displayDrawer);
+
+    const drawerOptions = {
+      window: {
+        ...this.options.window,
+        resizable: false,
+        frame: false,
+      },
+    };
+
+    const gmButtons = [
+      {
+        action: ClickAction.clearGrid,
+        label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Reset`),
+        class: 'clear',
+        icon: 'fas fa-ban',
+        onClick: () => this.handleClear.bind(this)(),
+      },
+    ];
+
+    const popOutOptions = {
+      classes: ['window-app', 'gm-screen-popOut'],
+      width: Number(columns) * 400,
+      height: Number(rows) * 300,
+      window: {
+        ...this.options.window,
+        resizable: true,
+        frame: true,
+        controls: [
+          {
+            action: ClickAction.refresh,
+            label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Refresh`),
+            class: 'refresh',
+            icon: 'fas fa-sync',
+            onClick: () => this.refresh(),
+          },
+          ...(getGame().user?.isGM ? gmButtons : []),
+        ],
+      },
+    };
+
+    log(false, {
+      displayDrawer,
+      options: displayDrawer ? drawerOptions : popOutOptions,
+    });
+
+    this.options = {
+      ...this.options,
+      ...(displayDrawer ? drawerOptions : popOutOptions),
+    };
   }
+
+  static PARTS = {
+    tabs: {
+      template: TEMPLATES.screenTabs,
+    },
+    content: {
+      template: TEMPLATES.screenContent,
+    },
+  };
+
+  static DEFAULT_OPTIONS = {
+    id: 'gm-screen-app',
+  };
 
   get rows() {
     return getGame().settings.get(MODULE_ID, MySettings.rows);
@@ -67,73 +135,8 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     return !!Object.keys(this.userViewableGrids).length;
   }
 
-  get state() {
-    return this._state;
-  }
-
-  get minimized() {
-    return this._minimized;
-  }
-
-  static get defaultOptions() {
-    const columns = getGame().settings.get(MODULE_ID, MySettings.columns);
-    const rows = getGame().settings.get(MODULE_ID, MySettings.rows);
-    const displayDrawer = getGame().settings.get(MODULE_ID, MySettings.displayDrawer);
-    const gmScreenConfig = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
-
-    const drawerOptions = {
-      popOut: false,
-    };
-
-    const popOutOptions = {
-      classes: ['gm-screen-popOut'],
-      popOut: true,
-      width: Number(columns) * 400,
-      height: Number(rows) * 300,
-      resizable: true,
-      title: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Title`),
-    };
-
-    const gmOptions = {
-      dragDrop: [{ dragSelector: '.gm-screen-grid-cell', dropSelector: '.gm-screen-grid-cell' }],
-    };
-
-    // set all of the cells of all the grids to be scrollY managed
-    const scrollY = Object.keys(gmScreenConfig.grids).reduce((acc, gridKey) => {
-      const gridColumns = gmScreenConfig.grids[gridKey].columnOverride ?? columns;
-      const gridRows = gmScreenConfig.grids[gridKey].rowOverride ?? rows;
-
-      const totalCells = Number(gridColumns) * Number(gridRows);
-
-      const gridKeyScrollY = [...new Array(totalCells)].map(
-        (_, index) => `#gm-screen-${gridKey}-cell-${index} .gm-screen-grid-cell-content`
-      );
-      return acc.concat(gridKeyScrollY);
-    }, [] as string[]);
-
-    log(false, {
-      displayDrawer,
-      options: displayDrawer ? drawerOptions : popOutOptions,
-    });
-
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      ...(displayDrawer ? drawerOptions : popOutOptions),
-      ...(getGame().user?.isGM
-        ? gmOptions
-        : {
-            dragDrop: [],
-          }),
-      tabs: [
-        {
-          navSelector: '.tabs',
-          contentSelector: '.gm-screen-app',
-          initial: gmScreenConfig.activeGridId ?? 'default',
-        },
-      ],
-      template: TEMPLATES.screen,
-      id: 'gm-screen-app',
-      scrollY,
-    });
+  get title() {
+    return !this.displayDrawer ? getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Title`) : '';
   }
 
   get activeGrid() {
@@ -165,10 +168,6 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
 
     // changing this setting will auto-refresh the screen
     await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
-
-    // if (render) {
-    //   this.refresh();
-    // }
   }
 
   /**
@@ -238,8 +237,6 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
    * @param {boolean} expanded
    */
   toggleGmScreenVisibility(expanded: boolean = !this.expanded) {
-    // TODO: Allow toggling open to a specific tab
-    // TODO: Provide API for other modules to know what tabs exist
     this.expanded = expanded;
 
     const activeGridDetails = {
@@ -248,9 +245,7 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     };
 
     if (this.expanded) {
-      ui.windows[this.appId] = this; // add our window to the stack, pretending we are an open Application
-
-      this.bringToTop();
+      this.bringToFront();
 
       $('.gm-screen-app').addClass('expanded');
 
@@ -262,7 +257,6 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
       });
     } else {
       $('.gm-screen-app').removeClass('expanded');
-      delete ui.windows[this.appId]; // remove our window to the stack, pretending we are a closed Application
 
       // on open, call MyHooks.openClose with isOpen: false and the active grid details
       // @ts-expect-error
@@ -466,7 +460,7 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
         this.refresh();
         break;
       }
-      case ClickAction.setActiveGridId: {
+      case ClickAction.tab: {
         const newActiveGridId = e.currentTarget.dataset.tab;
         // do nothing if we are not the GM or if nothing changes
         if (!getGame().user?.isGM || newActiveGridId === this.data.activeGridId || !newActiveGridId) {
@@ -487,7 +481,7 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
         }
         break;
       }
-      case ClickAction['toggle-gm-screen']: {
+      case ClickAction.toggleGmScreen: {
         try {
           this.toggleGmScreenVisibility();
         } catch (error) {
@@ -501,12 +495,28 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     }
   }
 
-  // This can be removed when GmScreenApplication is migrated to ApplicationV2
-  removeV12ThemesAndFixButtons() {
+  updateClassesAndFixButtons() {
     const html = $('#gm-screen-app');
-    html.removeClass('app themed theme-light').addClass('application');
+    if (this.displayDrawer) {
+      html.removeClass('application');
+    } else {
+      html.addClass('application');
+      html.find('.window-content').prepend(html.find('.window-header'));
+    }
+  }
 
-    html.find('.window-title').append(html.find('.gm-screen-actions'));
+  async _renderFrame(options) {
+    if (!this.displayDrawer) {
+      return super._renderFrame(options);
+    }
+    const template = $(
+      await foundry.applications.handlebars.renderTemplate(TEMPLATES.screen, await this._prepareContext(this.options))
+    ).get(0);
+    if (!template) {
+      throw new Error('Failed to render GmScreenApplication frame template');
+    }
+
+    return template;
   }
 
   /**
@@ -586,42 +596,32 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
   /**
    * @override
    */
-  activateListeners(html) {
-    super.activateListeners(html);
+  async _onRender(context, options) {
+    const dragDrop = new foundry.applications.ux.DragDrop({
+      dragSelector: '.gm-screen-grid-cell',
+      dropSelector: '.gm-screen-grid-cell',
+      permissions: { dragstart: () => !!getGame().user?.isGM, drop: () => !!getGame().user?.isGM },
+      callbacks: { drop: this._onDrop.bind(this) },
+    });
+    dragDrop.bind(this.element);
 
     if (this.displayDrawer) {
-      // bring to top on click
-      $(html).on('mousedown', (event) => {
-        log(false, 'buttons', event.buttons);
-        if (event.buttons === 2) {
-          return;
-        }
-        this.bringToTop();
+      this.setPosition({
+        left: NaN,
+        top: NaN,
+      });
+    } else {
+      this.setPosition({
+        width: Number(this.columns) * 400,
+        height: Number(this.rows) * 300,
       });
     }
 
-    if (getGame().user?.isGM) {
-      this._dragListeners(html);
-    }
+    const html = $(this.element);
 
-    $('.gm-screen-button').on('contextmenu', () => {
+    $('.gm-screen-button').on('contextmenu', async () => {
       const config = new GmScreenSettings({});
-      config.render(true);
-    });
-
-    $(html).on('click', 'button', this.handleClickEvent.bind(this));
-    $(html).on('click', 'a', this.handleClickEvent.bind(this));
-
-    // handle select of an entity
-    $(html).on('change', 'select', async (e) => {
-      const gridElementPosition = getGridElementsPosition($(e.target).parent());
-      const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
-      const newEntry: GmScreenGridEntry = {
-        ...gridElementPosition,
-        entryId: newEntryId,
-        entityUuid: e.target.value,
-      };
-      this.addEntryToActiveGrid(newEntry);
+      await config.render(true);
     });
 
     // stop here if there are no user viewable grids
@@ -630,7 +630,7 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     }
 
     this.injectCellContents(html);
-    this.removeV12ThemesAndFixButtons();
+    this.updateClassesAndFixButtons();
 
     // populate the --grid-cell-width variable
     const vanillaGridElement = document.querySelector('.gm-screen-grid');
@@ -646,6 +646,44 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
       .each((i, gridElement) => {
         gridElement.style.setProperty('--grid-cell-width', colWidth);
       });
+  }
+
+  /**
+   * @override
+   */
+  async _attachFrameListeners() {
+    super._attachFrameListeners();
+
+    const html = $(this.element);
+    if (this.displayDrawer) {
+      // bring to top on click
+      $(html).on('mousedown', (event) => {
+        log(false, 'buttons', event.buttons);
+        if (event.buttons === 2) {
+          return;
+        }
+        this.bringToFront();
+      });
+    }
+
+    if (getGame().user?.isGM) {
+      this._dragListeners(html);
+    }
+
+    $(html).on('click', 'button', this.handleClickEvent.bind(this));
+    $(html).on('click', 'a', this.handleClickEvent.bind(this));
+
+    // handle select of an entity
+    $(html).on('change', 'select', async (e) => {
+      const gridElementPosition = getGridElementsPosition($(e.target).parent());
+      const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
+      const newEntry: GmScreenGridEntry = {
+        ...gridElementPosition,
+        entryId: newEntryId,
+        entityUuid: e.target.value,
+      };
+      this.addEntryToActiveGrid(newEntry);
+    });
   }
 
   /**
@@ -729,7 +767,6 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
       this.apps[cellId] = new CompactJournalEntryDisplay({
         document: relevantDocument,
         editable: false,
-        popOut: false,
         cellId,
       });
     } else if (sheet instanceof foundry.applications.sheets.RollTableSheet) {
@@ -884,16 +921,21 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
   /**
    * @override
    */
-  getData() {
+  async _prepareContext(options) {
     const rightMargin = getGame().settings.get(MODULE_ID, MySettings.rightMargin);
     const drawerWidth = getGame().settings.get(MODULE_ID, MySettings.drawerWidth);
     const drawerHeight = getGame().settings.get(MODULE_ID, MySettings.drawerHeight);
     const drawerOpacity = getGame().settings.get(MODULE_ID, MySettings.drawerOpacity);
     const condensedButton = getGame().settings.get(MODULE_ID, MySettings.condensedButton);
 
-    const newAppData = {
-      ...super.getData(),
-      grids: this.getHydratedGrids(),
+    const grids = this.getHydratedGrids();
+    this.tabGroups.primary = this.data.activeGridId || 'default';
+    Object.keys(grids).forEach((gridId) => {
+      grids[gridId].grid.cssClass = this.tabGroups.primary === grids[gridId].grid.id ? 'active' : '';
+    });
+
+    const newAppData = foundry.utils.mergeObject(options, {
+      grids,
       isGM: !!getGame().user?.isGM,
       condensedButton: condensedButton,
       data: this.data,
@@ -906,9 +948,16 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
       expanded: this.expanded,
       hidden: !this.hasUserViewableGrids,
       displayDrawer: this.displayDrawer,
-    };
+    });
 
-    log(false, 'getData', {
+    newAppData.tabs = Object.keys(grids).map((id) => ({
+      id: grids[id].grid.id,
+      group: 'primary',
+      label: grids[id].grid.name,
+      cssClass: grids[id].grid.cssClass,
+    }));
+
+    log(false, '_prepareContext', {
       data: this.data,
       newAppData,
     });
@@ -916,36 +965,6 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     return newAppData;
   }
 
-  /**
-   * @override
-   */
-  _getHeaderButtons() {
-    const superButtons = super._getHeaderButtons();
-
-    const gmButtons = [
-      {
-        label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Reset`),
-        class: 'clear',
-        icon: 'fas fa-ban',
-        onclick: () => this.handleClear.bind(this)(),
-      },
-    ];
-
-    return [
-      ...(getGame().user?.isGM ? gmButtons : []),
-      {
-        label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Refresh`),
-        class: 'refresh',
-        icon: 'fas fa-sync',
-        onclick: () => this.refresh(),
-      },
-      ...superButtons,
-    ];
-  }
-
-  /**
-   * @override
-   */
   async _onDrop(event) {
     event.stopPropagation();
 
@@ -984,19 +1003,5 @@ export class GmScreenApplication extends foundry.appv1.api.Application {
     };
 
     this.addEntryToActiveGrid(newEntry);
-  }
-
-  /**
-   * @override
-   */
-  async close(...args) {
-    if (this.displayDrawer) {
-      log(false, 'intercepting close');
-      this.toggleGmScreenVisibility(false);
-
-      return;
-    }
-
-    return super.close(...args);
   }
 }

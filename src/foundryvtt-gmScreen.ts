@@ -36,7 +36,7 @@ function toggleGmScreenOpen(isOpen?: boolean) {
       if (gmScreenInstance.minimized) {
         gmScreenInstance.maximize();
       }
-      gmScreenInstance.bringToTop();
+      gmScreenInstance.bringToFront();
     } else {
       gmScreenInstance.close();
     }
@@ -144,7 +144,7 @@ Hooks.once('ready', async function () {
 
 function _addGmScreenButton(html) {
   const jHTML = $(html);
-  const actionButtons = jHTML.find('.action-buttons');
+  const actionButtons = jHTML.find('.header-actions');
 
   const gmScreenButtonHtml = `<button class="gm-screen-button">
           <i class="fas fa-book-reader"></i> ${getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Open`)}

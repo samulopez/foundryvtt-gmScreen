@@ -10,6 +10,7 @@ const defaultGmScreenConfig: GmScreenConfig = {
       id: 'default',
       isShared: false,
       entries: {},
+      cssClass: 'active',
     },
   },
 };

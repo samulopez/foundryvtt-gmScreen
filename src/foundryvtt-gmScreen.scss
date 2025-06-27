@@ -339,6 +339,7 @@ $transition-timing: 400ms;
     top: 2px;
     left: 10em;
     width: auto;
+    z-index: 99;
 
     .gm-screen-tabs {
       display: flex;
