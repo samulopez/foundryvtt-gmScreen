@@ -1,11 +1,5 @@
-import * as fsPromises from 'fs/promises';
 import copy from 'rollup-plugin-copy';
-import scss from 'rollup-plugin-scss';
-import { defineConfig, Plugin } from 'vite';
-
-const moduleVersion = process.env.MODULE_VERSION;
-const githubProject = process.env.GH_PROJECT;
-const githubTag = process.env.GH_TAG;
+import { defineConfig } from 'vite';
 
 const s_MODULE_ID = 'gm-screen';
 const s_PACKAGE_ID = `modules/${s_MODULE_ID}`;
@@ -54,42 +48,13 @@ export default defineConfig({
     },
   },
   plugins: [
-    updateModuleManifestPlugin(),
-    scss({
-      fileName: `${S_MODULE_FULLNAME}.css`,
-      sourceMap: true,
-      watch: ['src/styles/*.scss'],
-    }),
     copy({
       targets: [
         { src: 'src/lang', dest: `./dist/${s_MODULE_ID}` },
         { src: 'src/templates', dest: `./dist/${s_MODULE_ID}` },
+        { src: 'src/module.json', dest: `./dist/${s_MODULE_ID}` },
       ],
       hook: 'writeBundle',
     }),
   ],
 });
-
-function updateModuleManifestPlugin(): Plugin {
-  return {
-    name: 'update-module-manifest',
-    async writeBundle(): Promise<void> {
-      const packageContents = JSON.parse(await fsPromises.readFile('./package.json', 'utf-8')) as Record<
-        string,
-        unknown
-      >;
-      const version = moduleVersion || (packageContents.version as string);
-      const manifestContents: string = await fsPromises.readFile('src/module.json', 'utf-8');
-      const manifestJson = JSON.parse(manifestContents) as Record<string, unknown>;
-      manifestJson['version'] = version;
-      if (githubProject) {
-        const baseUrl = `https: //github.com/${githubProject}/releases`;
-        manifestJson['manifest'] = `${baseUrl}/latest/download/module.json`;
-        if (githubTag) {
-          manifestJson['download'] = `${baseUrl}/download/${githubTag}/module.zip`;
-        }
-      }
-      await fsPromises.writeFile(`./dist/${s_MODULE_ID}/module.json`, JSON.stringify(manifestJson, null, 4));
-    },
-  };
-}
