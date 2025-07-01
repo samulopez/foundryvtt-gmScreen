@@ -8,6 +8,7 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
     this.options.position.height = 'auto';
   }
 
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   get isEditable() {
     return false;
   }

@@ -11,6 +11,7 @@ export class CompactRollTableDisplay extends foundry.applications.sheets.RollTab
     this.cellId = options.cellId;
   }
 
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   get isEditable() {
     return false;
   }

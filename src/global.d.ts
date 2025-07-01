@@ -1,15 +1,12 @@
-import { GmScreenConfig } from './gridTypes';
+import { GmScreenConfig, GmScreenApi } from './gridTypes';
 
 declare global {
   interface ModuleConfig {
     'gm-screen': {
-      api?: Record<string, any>;
-    };
-    'gm-screen_dev-mode': {
-      api?: Record<string, any>;
+      api?: GmScreenApi;
     };
     '_dev-mode': {
-      api?: Record<string, any>;
+      api?: Record<string, (string) => void>;
     };
   }
   interface SettingConfig {
