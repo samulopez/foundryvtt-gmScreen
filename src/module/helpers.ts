@@ -1,14 +1,33 @@
 import { GmScreenConfig, GmScreenGridEntry } from '../gridTypes';
+
 import { MODULE_ABBREV, MODULE_ID, numberRegex } from './constants';
 
-type LocalizationHelper = {
+interface LocalizationHelper {
   localize: (key: string) => string;
-};
+}
+
+export function getGame(): foundry.Game {
+  if (!(game instanceof foundry.Game)) {
+    throw new Error('game is not initialized yet!');
+  }
+  return game;
+}
+
+export function getLocalization(): LocalizationHelper {
+  const { i18n } = getGame();
+  if (!i18n) {
+    return {
+      localize: (key: string) => key,
+    };
+  }
+  return i18n;
+}
 
 export function log(force: boolean, ...args) {
   const shouldLog = force || getGame().modules.get('_dev-mode')?.api?.getPackageDebugValue(MODULE_ID);
 
   if (shouldLog) {
+    // eslint-disable-next-line no-console
     console.log(MODULE_ID, '|', ...args);
   }
 }
@@ -87,7 +106,7 @@ export function getUserCellConfigurationInput(
   });
 }
 
-export function getGridElementsPosition(element: JQuery<HTMLElement>) {
+export function getGridElementsPosition(element: JQuery) {
   // const vanillaGridElement = document.querySelector('.gm-screen-grid');
   const relevantGridElement = element.parents('.gm-screen-grid')[0];
 
@@ -104,13 +123,13 @@ export function getGridElementsPosition(element: JQuery<HTMLElement>) {
 
   const gap = Number(vanillaGridElementStyles['grid-row-gap'].match(numberRegex)[0]);
 
-  //Get the css attribute grid-template-columns from the css of class grid
-  //split on whitespace and get the length, this will give you the column dimensions
+  // Get the css attribute grid-template-columns from the css of class grid
+  // split on whitespace and get the length, this will give you the column dimensions
   const cols = vanillaGridElementStyles['grid-template-columns'].split(' ');
   const colWidth = Number(cols[0].match(numberRegex)[0]);
 
-  //Get the css attribute grid-template-rows from the css of class grid
-  //split on whitespace and get the length, this will give you the column dimensions
+  // Get the css attribute grid-template-rows from the css of class grid
+  // split on whitespace and get the length, this will give you the column dimensions
   const rows = vanillaGridElementStyles['grid-template-rows'].split(' ');
   const rowHeight = Number(rows[0].match(numberRegex)[0]);
 
@@ -137,7 +156,7 @@ export function getGridElementsPosition(element: JQuery<HTMLElement>) {
       elementRow,
     },
   });
-  //Return an object with properties row and column
+  // Return an object with properties row and column
   return { y: elementRow, x: elementColumn };
 }
 
@@ -168,7 +187,7 @@ export function getUserViewableGrids(gmScreenConfig: GmScreenConfig) {
  * @memberof GmScreenApplication
  */
 export function updateCSSPropertyVariable(
-  html: JQuery<HTMLElement>,
+  html: JQuery,
   selector: string,
   property: keyof CSSStyleDeclaration,
   name: string
@@ -177,21 +196,4 @@ export function updateCSSPropertyVariable(
     const value = window.getComputedStyle(gridCell)[property];
     gridCell.style.setProperty(name, String(value));
   });
-}
-
-export function getGame(): foundry.Game {
-  if (!(game instanceof foundry.Game)) {
-    throw new Error('game is not initialized yet!');
-  }
-  return game;
-}
-
-export function getLocalization(): LocalizationHelper {
-  const { i18n } = getGame();
-  if (!i18n) {
-    return {
-      localize: (key: string) => key,
-    };
-  }
-  return i18n;
 }

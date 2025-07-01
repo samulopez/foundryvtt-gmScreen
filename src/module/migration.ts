@@ -1,6 +1,7 @@
 import { GmScreenConfig, GmScreenGrid, GmScreenGridEntry } from '../gridTypes';
-import { MODULE_ID, MySettings } from './constants';
+
 import { getGame, log } from './helpers';
+import { MODULE_ID, MySettings } from './constants';
 
 interface GmScreenConfig1 {
   grid: {
@@ -8,14 +9,14 @@ interface GmScreenConfig1 {
   };
 }
 
-export async function _gmScreenMigrate() {
+export async function gmScreenMigrate() {
   if (!getGame().user?.isGM) return;
   const NEEDS_MIGRATION_VERSION = '2.0.1';
   // Updating from old install -> Migrated
   // Fresh install -> No migration CHECK
   // Skipped multiple versions and upgrading in 0.4.X or higher
   // X round of migrations (bound to happen again, right?)
-  let migrated = getGame().settings.get(MODULE_ID, MySettings.migrated);
+  const migrated = getGame().settings.get(MODULE_ID, MySettings.migrated);
   // If we have migrated before
   if (migrated.status) {
     // If our version is newer than the NEEDS_MIGRATION_VERSION
@@ -26,7 +27,7 @@ export async function _gmScreenMigrate() {
 
   ui.notifications?.notify('GM Screen | Beginning Migration to updated schema.', 'info');
 
-  let gmScreenConfig = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig) as unknown as GmScreenConfig1;
+  const gmScreenConfig = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig) as unknown as GmScreenConfig1;
   if (!!gmScreenConfig?.grid?.entries && Array.isArray(gmScreenConfig.grid.entries)) {
     // need to convert gmscreenconfig.grid.entries from array to object
 
