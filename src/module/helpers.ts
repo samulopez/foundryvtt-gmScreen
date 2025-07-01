@@ -24,33 +24,37 @@ export function getUserCellConfigurationInput(
     newSpanRows: number;
     newSpanCols: number;
   }>((resolve, reject) => {
-    new foundry.appv1.api.Dialog({
-      title: getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.CellConfig`),
+    new foundry.applications.api.DialogV2({
+      window: { title: getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.CellConfig`) },
+      modal: true,
       content: `
-  <form class="flexcol">
     <div class="form-group">
       <label for="spanRows">${getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.RowSpan`)}</label>
-      <input type="number" step="1" name="spanRows" min="1" max="${gridDetails.rows + 1 - cellToConfigure.y}" value="${
+      <input type="number" step="1" name="spanRows" id="spanRows" min="1" max="${gridDetails.rows + 1 - cellToConfigure.y}" value="${
         cellToConfigure.spanRows || 1
       }">
     </div>
     <div class="form-group">
       <label for="spanCols">${getLocalization().localize(`${MODULE_ABBREV}.cellConfigDialog.ColSpan`)}</label>
-      <input type="number" step="1" name="spanCols" min="1" max="${
+      <input type="number" step="1" name="spanCols" id="spanCols" min="1" max="${
         gridDetails.columns + 1 - cellToConfigure.x
       }" value="${cellToConfigure.spanCols || 1}">
-    </div>
-  </form>
+    </div>  
 `,
-      buttons: {
-        no: {
-          icon: '<i class="fas fa-times"></i>',
+      buttons: [
+        {
+          action: 'no',
+          icon: 'fas fa-times',
           label: getLocalization().localize('Cancel'),
+          callback: () => {
+            reject();
+          },
         },
-        reset: {
-          icon: '<i class="fas fa-undo"></i>',
+        {
+          action: 'reset',
+          icon: 'fas fa-undo',
           label: getLocalization().localize('Default'),
-          callback: (html: JQuery<HTMLElement>) => {
+          callback: () => {
             const formValues = {
               newSpanRows: 1,
               newSpanCols: 1,
@@ -61,10 +65,13 @@ export function getUserCellConfigurationInput(
             resolve(formValues);
           },
         },
-        yes: {
-          icon: '<i class="fas fa-check"></i>',
+        {
+          action: 'yes',
+          icon: 'fas fa-check',
           label: getLocalization().localize('Submit'),
-          callback: (html: JQuery<HTMLElement>) => {
+          default: true,
+          callback: (_event, button, dialog) => {
+            const html = $(dialog.element);
             const formValues = {
               newSpanRows: Number(html.find('[name="spanRows"]').val()),
               newSpanCols: Number(html.find('[name="spanCols"]').val()),
@@ -75,12 +82,8 @@ export function getUserCellConfigurationInput(
             resolve(formValues);
           },
         },
-      },
-      default: 'yes',
-      close: () => {
-        reject();
-      },
-    }).render(true);
+      ],
+    }).render({ force: true });
   });
 }
 
