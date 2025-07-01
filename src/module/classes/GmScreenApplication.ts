@@ -270,21 +270,21 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   /**
    * Double confirms Clearing the Active Grid
    */
-  handleClear() {
+  async handleClear() {
     log(false, 'handleClear');
 
-    foundry.appv1.api.Dialog.confirm({
+    const proceed = await foundry.applications.api.DialogV2.confirm({
       title: getLocalization().localize(`${MODULE_ABBREV}.warnings.clearConfirm.Title`),
       content: getLocalization().localize(`${MODULE_ABBREV}.warnings.clearConfirm.Content`),
-      yes: async () => {
-        this.apps = {};
-        this.setGridData({
-          ...this.activeGrid,
-          entries: {},
-        });
-      },
-      no: () => {},
     });
+
+    if (proceed) {
+      this.apps = {};
+      this.setGridData({
+        ...this.activeGrid,
+        entries: {},
+      });
+    }
   }
 
   _dragListeners(html: JQuery<any>) {
