@@ -24,6 +24,7 @@ $transition-timing: 400ms;
     transform: translateY(0);
     transition: all $transition-timing ease-in-out;
     z-index: 99;
+    overflow: unset;
 
     &.expanded {
       transform: translateY(-100%);

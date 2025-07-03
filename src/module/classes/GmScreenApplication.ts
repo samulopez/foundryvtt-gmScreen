@@ -232,6 +232,21 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     this.setGridData(newGridData);
   }
 
+  bringToFront() {
+    if (!this.displayDrawer) {
+      super.bringToFront();
+      return;
+    }
+    if (this.position.zIndex === foundry.applications.api.ApplicationV2._maxZ) {
+      return;
+    }
+
+    foundry.applications.api.ApplicationV2._maxZ += 1;
+    this.setPosition({
+      zIndex: foundry.applications.api.ApplicationV2._maxZ,
+    });
+  }
+
   /**
    * Set the GM Screen Visibility. By default will toggle the current state.
    * @param {boolean} expanded
@@ -248,6 +263,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       this.bringToFront();
 
       $('.gm-screen-app').addClass('expanded');
+      $('.gm-screen-app').css('z-index', this.position.zIndex);
 
       // on open, call MyHooks.openClose with isOpen: true and the active grid details
       // @ts-expect-error
@@ -497,9 +513,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
   updateClassesAndFixButtons() {
     const html = $('#gm-screen-app');
-    if (this.displayDrawer) {
-      html.removeClass('application');
-    } else {
+    if (!this.displayDrawer) {
       html.addClass('application');
       html.find('.window-content').prepend(html.find('.window-header'));
     }

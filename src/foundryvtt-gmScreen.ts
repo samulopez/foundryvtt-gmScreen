@@ -9,7 +9,7 @@ import './foundryvtt-gmScreen.scss';
 
 let gmScreenInstance: GmScreenApplication;
 
-function toggleGmScreenOpen(isOpen?: boolean) {
+async function toggleGmScreenOpen(isOpen?: boolean) {
   const gmScreenConfig = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
 
   const userViewableGrids = getUserViewableGrids(gmScreenConfig);
@@ -28,11 +28,14 @@ function toggleGmScreenOpen(isOpen?: boolean) {
     gmScreenInstance = new GmScreenApplication();
   }
 
-  const shouldOpen = isOpen ?? (gmScreenInstance.state < 1 ? true : false);
+  const shouldOpen = isOpen ?? gmScreenInstance.state < 1;
+  const shouldRender = gmScreenInstance.state < 1;
 
   try {
     if (shouldOpen) {
-      gmScreenInstance.render(true);
+      if (shouldRender) {
+        await gmScreenInstance.render(true);
+      }
       if (gmScreenInstance.minimized) {
         gmScreenInstance.maximize();
       }
@@ -40,7 +43,9 @@ function toggleGmScreenOpen(isOpen?: boolean) {
     } else {
       gmScreenInstance.close();
     }
-  } catch (e) {}
+  } catch (error) {
+    log(false, 'error occurred trying to toggle the GM screen', error);
+  }
 }
 
 function refreshGmScreen() {
