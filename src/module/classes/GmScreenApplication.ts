@@ -1,5 +1,3 @@
-import { GmScreenConfig, GmScreenGrid, GmScreenGridEntry } from '../../gridTypes';
-import { MODULE_ABBREV, MODULE_ID, MyHooks, MySettings, TEMPLATES } from '../constants';
 import {
   getGame,
   getGridElementsPosition,
@@ -9,9 +7,12 @@ import {
   log,
   updateCSSPropertyVariable,
 } from '../helpers';
-import { CompactJournalEntryDisplay } from './CompactJournalEntryDisplay';
-import { CompactRollTableDisplay } from './CompactRollTableDisplay';
+import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
+import { GmScreenConfig, GmScreenGrid, GmScreenGridEntry } from '../../gridTypes';
+
 import { GmScreenSettings } from './GmScreenSettings';
+import { CompactRollTableDisplay } from './CompactRollTableDisplay';
+import { CompactJournalEntryDisplay } from './CompactJournalEntryDisplay';
 
 enum ClickAction {
   clearGrid = 'clearGrid',
@@ -23,11 +24,11 @@ enum ClickAction {
   tab = 'tab',
 }
 
-type CustomOptions = {
+interface CustomOptions {
   cellId: string;
   _injectHTML(html: JQuery): void;
   _replaceHTML(element: JQuery, html: JQuery): void;
-};
+}
 
 type GmScreenApp =
   | (ActorSheet & { render: (force?: boolean) => void })
@@ -39,7 +40,9 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   foundry.applications.api.ApplicationV2
 ) {
   expanded: boolean;
+
   data: GmScreenConfig;
+
   apps: Record<string, GmScreenApp>;
 
   constructor(options = {}) {
@@ -153,9 +156,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   /**
    * Helper function to update the gmScreenConfig setting with a new grid's worth of data
    * @param {GmScreenGrid} newGridData - the complete grid object to set
-   * @param {boolean} render - ⚠️ DEPRECATED since 2.4.0: whether or not to also render/refresh the grid
    */
-  async setGridData(newGridData: GmScreenGrid, render: boolean = true) {
+  async setGridData(newGridData: GmScreenGrid) {
     const newGmScreenConfig = foundry.utils.deepClone(this.data);
 
     const updated = foundry.utils.setProperty(newGmScreenConfig, `grids.${newGridData.id}`, newGridData);
@@ -251,35 +253,15 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
    * Set the GM Screen Visibility. By default will toggle the current state.
    * @param {boolean} expanded
    */
-  toggleGmScreenVisibility(expanded: boolean = !this.expanded) {
+  toggleGmScreenVisibility(expanded = !this.expanded) {
     this.expanded = expanded;
-
-    const activeGridDetails = {
-      activeGridId: this.data.activeGridId,
-      activeGridName: this.data.grids[this.data.activeGridId]?.name,
-    };
 
     if (this.expanded) {
       this.bringToFront();
-
       $('.gm-screen-app').addClass('expanded');
       $('.gm-screen-app').css('z-index', this.position.zIndex);
-
-      // on open, call MyHooks.openClose with isOpen: true and the active grid details
-      // @ts-expect-error
-      Hooks.callAll(MyHooks.openClose, this, {
-        isOpen: true,
-        ...activeGridDetails,
-      });
     } else {
       $('.gm-screen-app').removeClass('expanded');
-
-      // on open, call MyHooks.openClose with isOpen: false and the active grid details
-      // @ts-expect-error
-      Hooks.callAll(MyHooks.openClose, this, {
-        isOpen: false,
-        ...activeGridDetails,
-      });
     }
   }
 
@@ -303,7 +285,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     }
   }
 
-  _dragListeners(html: JQuery<any>) {
+  _dragListeners(html: JQuery) {
     let draggedTab: HTMLElement | undefined;
     const tabElement = html.find('.gm-screen-tabs');
 
@@ -316,7 +298,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         return;
       }
 
-      let children = Array.from($(e.target).closest('.gm-screen-tabs').children());
+      const children = Array.from($(e.target).closest('.gm-screen-tabs').children());
 
       if (children.indexOf(e.target) > children.indexOf(draggedTab)) {
         e.target.after(draggedTab);
@@ -415,8 +397,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             .map((_, index) => {
               const problemX = newCell.x + index;
 
-              return [...Array(newCell.spanRows).keys()].map((_, index) => {
-                const problemY = newCell.y + index;
+              return [...Array(newCell.spanRows).keys()].map((_k, i) => {
+                const problemY = newCell.y + i;
                 return `${problemX}-${problemY}`; // problem cell's id
               });
             })
@@ -441,8 +423,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           };
 
           this.setGridData(newGridData);
-        } catch (e) {
-          log(false, 'User exited configure cell Dialog.');
+        } catch (error) {
+          log(false, 'User exited configure cell Dialog.', error);
         }
         break;
       }
@@ -505,9 +487,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         }
         break;
       }
-      default: {
-        return;
-      }
+      default:
     }
   }
 
@@ -607,10 +587,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     this.render(true);
   }
 
-  /**
-   * @override
-   */
-  async _onRender(context, options) {
+  async _onRender() {
     const dragDrop = new foundry.applications.ux.DragDrop({
       dragSelector: '.gm-screen-grid-cell',
       dropSelector: '.gm-screen-grid-cell',
@@ -635,7 +612,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
     $('.gm-screen-button').on('contextmenu', async () => {
       const config = new GmScreenSettings({});
-      await config.render(true);
+      await config.render({ force: true });
     });
 
     // stop here if there are no user viewable grids
@@ -669,16 +646,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     super._attachFrameListeners();
 
     const html = $(this.element);
-    if (this.displayDrawer) {
-      // bring to top on click
-      $(html).on('mousedown', (event) => {
-        log(false, 'buttons', event.buttons);
-        if (event.buttons === 2) {
-          return;
-        }
-        this.bringToFront();
-      });
-    }
 
     if (getGame().user?.isGM) {
       this._dragListeners(html);
@@ -706,7 +673,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
    *
    * @param entityUuid - relevant entityUuid
    */
-  async getRelevantGmScreenDocument(entityUuid) {
+  async getRelevantGmScreenDocument(entityUuid): Promise<Actor | Item | JournalEntry | RollTable | undefined> {
     const relevantDocument = await fromUuid(entityUuid);
 
     if (
@@ -717,7 +684,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         relevantDocument instanceof RollTable
       )
     ) {
-      return;
+      return undefined;
     }
 
     return relevantDocument;
@@ -732,15 +699,16 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
    * @param gridCellContentElement - the element to inject into
    * @returns
    */
-  async getCellApplicationClass(entityUuid: string, cellId: string) {
+  async getCellApplicationClass(entityUuid: string, cellId: string): Promise<GmScreenApp | undefined> {
     const relevantDocument = await this.getRelevantGmScreenDocument(entityUuid);
 
     if (!relevantDocument) {
       await this.apps[cellId]?.close();
       delete this.apps[cellId];
 
+      // eslint-disable-next-line no-console
       console.warn('One of the grid cells tried to render an entity that does not exist.', entityUuid);
-      return;
+      return undefined;
     }
 
     /* If there is an old app here which isn't this entity's, destroy it */
@@ -749,17 +717,17 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       delete this.apps[cellId];
     }
 
-    const sheet = relevantDocument.sheet;
-    let sheetClass = sheet?.constructor;
+    const { sheet } = relevantDocument;
+    const SheetClass = sheet?.constructor;
 
     /* If the currently cached sheet class does not match the sheet class, destroy it */
-    if (this.apps[cellId] && this.apps[cellId].constructor.name !== sheetClass?.name) {
+    if (this.apps[cellId] && this.apps[cellId].constructor.name !== SheetClass?.name) {
       await this.apps[cellId].close();
       delete this.apps[cellId];
     }
 
     /* If the currently cached sheet class does match the sheet class, return it */
-    if (this.apps[cellId] && this.apps[cellId].constructor.name === sheetClass?.name) {
+    if (this.apps[cellId] && this.apps[cellId].constructor.name === SheetClass?.name) {
       log(false, `using cached application instance for "${relevantDocument.name}"`, {
         entityUuid,
         app: this.apps[cellId],
@@ -770,7 +738,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
     log(false, 'relevantEntity sheet', {
       sheet,
-      name: sheetClass?.name,
+      name: SheetClass?.name,
     });
 
     if (sheet instanceof foundry.applications.sheets.journal.JournalEntrySheet) {
@@ -790,19 +758,19 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
       this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
     } else {
-      if (!sheetClass) {
+      if (!SheetClass) {
         log(true, 'no sheet class found for relevantDocument', {
           relevantDocument,
           entityUuid,
         });
-        return;
+        return undefined;
       }
       log(false, `creating compact generic for "${relevantDocument.name}"`, {
         cellId,
       });
 
-      //@ts-expect-error
-      const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) = new sheetClass(
+      // @ts-expect-error Type 'Function' has no construct signatures
+      const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) = new SheetClass(
         relevantDocument,
         {
           width: '100%',
@@ -814,7 +782,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       CompactDocumentSheet.options.popOut = false;
       CompactDocumentSheet.cellId = cellId;
 
-      CompactDocumentSheet._injectHTML = function (html) {
+      CompactDocumentSheet._injectHTML = function injectHTML(html) {
         $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
 
         const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
@@ -830,7 +798,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         this._element = html;
       };
 
-      CompactDocumentSheet._replaceHTML = function (element, html) {
+      CompactDocumentSheet._replaceHTML = function replaceHTML(element, html) {
         $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
 
         const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
@@ -853,7 +821,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     return this.apps[cellId];
   }
 
-  injectCellContents(html: JQuery<HTMLElement>) {
+  injectCellContents(html: JQuery) {
     $(html)
       .find('[data-entity-uuid]')
       .each((index, gridEntry) => {
@@ -921,7 +889,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
       const emptyCellsNum = Number(gridColumns) * Number(gridRows) - GmScreenApplication.getNumOccupiedCells(grid);
       const emptyCells: Partial<GmScreenGridEntry>[] =
-        emptyCellsNum > 0 ? [...new Array(emptyCellsNum)].map(() => ({})) : [];
+        emptyCellsNum > 0 ? Array.from({ length: emptyCellsNum }).map(() => ({})) : [];
 
       acc[grid.id] = {
         grid,
@@ -951,7 +919,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const newAppData = foundry.utils.mergeObject(options, {
       grids,
       isGM: !!getGame().user?.isGM,
-      condensedButton: condensedButton,
+      condensedButton,
       data: this.data,
       columns: this.columns,
       rows: this.rows,
@@ -989,8 +957,9 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     let data;
     try {
       data = JSON.parse(event.dataTransfer.getData('text/plain'));
-    } catch (err) {
-      return false;
+    } catch (error) {
+      log(false, 'error parsing data from drag and drop', error);
+      return;
     }
 
     log(false, 'onDrop', {
@@ -1001,7 +970,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
     // only move forward if this is a JournalEntry or RollTable
     if (!['JournalEntry', 'RollTable', 'Item', 'Actor'].includes(data.type)) {
-      return false;
+      return;
     }
 
     const entityUuid = data.pack ? `Compendium.${data.pack}.${data.uuid}` : data.uuid;

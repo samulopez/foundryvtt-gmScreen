@@ -1,5 +1,5 @@
-import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
 import { getGame, getLocalization, log } from '../helpers';
+import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
 import { GmScreenConfig } from '../../gridTypes';
 
 const defaultGmScreenConfig: GmScreenConfig = {
@@ -32,10 +32,10 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       default: defaultGmScreenConfig,
       scope: 'world',
       config: false,
-      onChange: function (...args) {
+      onChange(...args) {
         log(false, 'gmScreenConfig changed', {
           args,
-          currentConfig: { ...(getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig) as GmScreenConfig) },
+          currentConfig: { ...getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig) },
         });
 
         getGame().modules.get(MODULE_ID)?.api?.refreshGmScreen();
@@ -196,7 +196,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
     return data;
   }
 
-  _dragListeners(html: JQuery<any>) {
+  _dragListeners(html: JQuery) {
     let draggedRow: HTMLElement | undefined;
 
     html.on('dragstart', (e) => {
@@ -214,7 +214,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
         return;
       }
 
-      let tableRows = Array.from($(e.target).parents('tbody').children()) as HTMLElement[];
+      const tableRows = Array.from($(e.target).parents('tbody').children());
 
       if (tableRows.indexOf(targetRow) > tableRows.indexOf(draggedRow)) {
         targetRow.after(draggedRow);
@@ -223,21 +223,21 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       }
     });
 
-    html.on('dragend', (e) => {
+    html.on('dragend', () => {
       draggedRow = undefined;
     });
   }
 
-  async _onRender(context, options) {
+  async _onRender() {
     const html = $(this.element);
     log(false, 'activateListeners', {
       html,
     });
-    const handleNewRowClick = async (currentTarget: JQuery<any>) => {
+    const handleNewRowClick = async (currentTarget: JQuery) => {
       log(false, 'add row clicked', {
         data: currentTarget.data(),
       });
-      const table = currentTarget.data().table;
+      const { table } = currentTarget.data();
       const tbodyElement = $(html).find('tbody');
       const newGridRowTemplateData = {
         gridId: foundry.utils.randomID(),
@@ -256,7 +256,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       tbodyElement.append(newRow);
       this.setPosition({}); // recalc height
     };
-    const handleDeleteRowClick = (currentTarget: JQuery<any>) => {
+    const handleDeleteRowClick = (currentTarget: JQuery) => {
       log(false, 'delete row clicked', {
         currentTarget,
       });
@@ -300,7 +300,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
 
     if (Object.keys(data).length === 0) {
       ui.notifications?.error(getLocalization().localize(`${MODULE_ABBREV}.gridConfig.errors.empty`));
-      throw 'Cannot save the grid with no tabs.';
+      throw new Error('Cannot save the grid with no tabs.');
     }
 
     const newGridIds = Object.keys(data.grids);
@@ -309,7 +309,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       const grid = data.grids[gridId];
 
       // if this grid exists already, modify it
-      if (gmScreenConfig.grids.hasOwnProperty(gridId)) {
+      if (Object.hasOwn(gmScreenConfig.grids, gridId)) {
         acc[gridId] = {
           ...gmScreenConfig.grids[gridId],
           ...grid,

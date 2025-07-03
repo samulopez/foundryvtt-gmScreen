@@ -1,14 +1,14 @@
-import copy from 'rollup-plugin-copy';
 import { defineConfig } from 'vite';
+import copy from 'rollup-plugin-copy';
 
-const s_MODULE_ID = 'gm-screen';
-const s_PACKAGE_ID = `modules/${s_MODULE_ID}`;
-const S_MODULE_FULLNAME = 'foundryvtt-gmScreen';
-const s_ENTRY_TYPESCRIPT = `${S_MODULE_FULLNAME}.ts`;
+const MODULE_ID = 'gm-screen';
+const PACKAGE_ID = `modules/${MODULE_ID}`;
+const MODULE_FULLNAME = 'foundryvtt-gmScreen';
+const ENTRY_TYPESCRIPT = `${MODULE_FULLNAME}.ts`;
 
 export default defineConfig({
   root: 'src/', // Source location / esbuild root.
-  base: `/${s_PACKAGE_ID}/`, // Base module path that 30001 / served dev directory.
+  base: `/${PACKAGE_ID}/`, // Base module path that 30001 / served dev directory.
   publicDir: false, // No public resources to copy.
   cacheDir: '../.vite-cache', // Relative from root directory.
   server: {
@@ -21,29 +21,29 @@ export default defineConfig({
     },
     proxy: {
       // Serves static files from main Foundry server.
-      [`^(/${s_PACKAGE_ID}/(images|fonts|assets|lang|languages|packs|styles|templates|${S_MODULE_FULLNAME}.css))`]:
+      [`^(/${PACKAGE_ID}/(images|fonts|assets|lang|languages|packs|styles|templates|${MODULE_FULLNAME}.css))`]:
         'http://127.0.0.1:30000',
 
       // All other paths besides package ID path are served from main Foundry server.
-      [`^(?!/${s_PACKAGE_ID}/)`]: 'http://127.0.0.1:30000',
+      [`^(?!/${PACKAGE_ID}/)`]: 'http://127.0.0.1:30000',
 
       // Enable socket.io from main Foundry server.
       '/socket.io': { target: 'ws://127.0.0.1:30000', ws: true },
     },
   },
   build: {
-    outDir: `../dist/${s_MODULE_ID}`,
+    outDir: `../dist/${MODULE_ID}`,
     emptyOutDir: true,
     sourcemap: true,
     lib: {
-      name: S_MODULE_FULLNAME,
-      entry: s_ENTRY_TYPESCRIPT,
+      name: MODULE_FULLNAME,
+      entry: ENTRY_TYPESCRIPT,
       formats: ['es'],
-      cssFileName: S_MODULE_FULLNAME,
+      cssFileName: MODULE_FULLNAME,
     },
     rollupOptions: {
       output: {
-        entryFileNames: `${S_MODULE_FULLNAME}.js`,
+        entryFileNames: `${MODULE_FULLNAME}.js`,
         format: 'es',
       },
     },
@@ -51,9 +51,9 @@ export default defineConfig({
   plugins: [
     copy({
       targets: [
-        { src: 'src/lang', dest: `./dist/${s_MODULE_ID}` },
-        { src: 'src/templates', dest: `./dist/${s_MODULE_ID}` },
-        { src: 'src/module.json', dest: `./dist/${s_MODULE_ID}` },
+        { src: 'src/lang', dest: `./dist/${MODULE_ID}` },
+        { src: 'src/templates', dest: `./dist/${MODULE_ID}` },
+        { src: 'src/module.json', dest: `./dist/${MODULE_ID}` },
       ],
       hook: 'writeBundle',
     }),
