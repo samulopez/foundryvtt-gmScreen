@@ -39,6 +39,7 @@ export default defineConfig({
       name: S_MODULE_FULLNAME,
       entry: s_ENTRY_TYPESCRIPT,
       formats: ['es'],
+      cssFileName: S_MODULE_FULLNAME,
     },
     rollupOptions: {
       output: {
