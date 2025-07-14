@@ -1,6 +1,9 @@
 # GM Screen
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 ![Latest Release Download Count](https://img.shields.io/badge/dynamic/json?label=Downloads@latest&query=assets%5B1%5D.download_count&url=https%3A%2F%2Fapi.github.com%2Frepos%2FElfFriend-DnD%2Ffoundryvtt-gmScreen%2Freleases%2Flatest)
@@ -8,12 +11,11 @@
 [![Foundry Hub Endorsements](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fgm-screen%2Fshield%2Fendorsements)](https://www.foundryvtt-hub.com/package/gm-screen/)
 [![Foundry Hub Comments](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fgm-screen%2Fshield%2Fcomments)](https://www.foundryvtt-hub.com/package/gm-screen/)
 
+![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsamulopez%2Ffoundryvtt-gmScreen%2Fmain%2Fsrc%2Fmodule.json&label=Foundry%20Version&query=$.compatibility.verified&colorB=orange)
 
-![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2FElfFriend-DnD%2Ffoundryvtt-gmScreen%2Fmain%2Fsrc%2Fmodule.json&label=Foundry%20Version&query=$.compatibleCoreVersion&colorB=orange)
-![Manifest+ Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2FElfFriend-DnD%2Ffoundryvtt-gmScreen%2Fmain%2Fsrc%2Fmodule.json&label=Manifest%2B%20Version&query=$.manifestPlusVersion&colorB=blue)
+This fork wouldn't exist without the work of ElfFriend-DnD on the main repository.
 
-
-[![ko-fi](https://img.shields.io/badge/-buy%20me%20a%20coke-%23FF5E5B)](https://ko-fi.com/elffriend)
+[![ko-fi](https://img.shields.io/badge/-buy%20him%20a%20coke-%23FF5E5B)](https://ko-fi.com/elffriend)
 [![patreon](https://img.shields.io/badge/-patreon-%23FF424D)](https://www.patreon.com/ElfFriend_DnD)
 
 ![GM Screen Cover Image](readme-img/cover-image.png)
@@ -24,33 +26,34 @@ Additionally, any screen you create as GM can be set to be shared with players, 
 
 ## Usage
 
-![Tab Configuration Demo Video](readme-img/tab-config-demo.mp4)
+<video src="readme-img/tab-config-demo.mp4" alt="Tab Configuration Demo Video"></video>
 
 - Set up tabs in the Module Settings, and optionally share some with your players.
-- Drag and Drop Journal Entries, Rollable Tables, even Actors and Items into cells on the GM Screen.
+- Drag and drop Journal Entries, Rollable Tables, even Actors and Items into cells on the GM Screen.
 - Each cell has settings which allow for that cell to span multiple columns or rows.
-- Clicking the little icon on the top-right of the cell will pop out the full sized sheet for whatever entity is in the cell. The GM Screen is intended to be read-only, so edits to things inside it will happen for the most part by popping the entity out.
-- Tabs can be reordered from either the settings or by directly dragging and dropping them in the drawer display.
+- Clicking the little icon on the top-right of the cell will pop out the full-sized sheet for whatever entity is in the cell. The GM Screen is intended to be read-only, so edits to things inside it will happen for the most part by popping the entity out.
+- Tabs can be reordered from the settings.
 
 ## Installation
 
 Module JSON:
 
 ```
-https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/releases/latest/download/module.json
+https://github.com/samulopez/foundryvtt-gmScreen/releases/latest/download/module.json
 ```
 
 ## Screenshots
 
 ### GM View
+
 ![GM Screen Grid Tab with Combat information.](readme-img/combat-tab.png)
 ![GM Screen Grid Tab with Rules information.](readme-img/rules-tab.png)
 ![GM Screen Grid Tab with Notes information.](readme-img/notes-tab.png)
 ![GM Screen Grid Tab with a Player Cheat Sheet.](readme-img/cheat-sheet-tab.png)
 
 ### Player View (with a tab set to be shared)
-![Demonstration of the GM Screen Grid from the player's perspective.](readme-img/cheet-sheet-player.png)
 
+![Demonstration of the GM Screen Grid from the player's perspective.](readme-img/cheet-sheet-player.png)
 
 ## Configuration
 
@@ -61,7 +64,7 @@ https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/releases/latest/download/mo
 | **Grid Tabs**                  | world  |  Menu   | Allows the user to configure multiple tabs of the grid. Each grid tab created can have its own Column Override and Row Override if the default setting isn't what you want for that particular tab. |
 | **Columns**                    | world  |    4    | Sets the number of columns in the grid.                                                                                                                                                             |
 | **Rows**                       | world  |    3    | Sets the number of rows in the grid.                                                                                                                                                                |
-| **Display as Drawer**          | client |  true   | Controls whether the GM Screen appears as a normal popup dialog or as a drawer. To use the PopOut module with the GM Screen, this needs to checked.                                                 |
+| **Display as Drawer**          | client |  true   | Controls whether the GM Screen appears as a normal popup dialog or as a drawer. To use the PopOut module with the GM Screen, this needs to be unchecked.                                            |
 | Drawer Only: **Right Margin**  | client |  0(vw)  | Sets the offset from the sidebar to the right side of the GM Screen. This number affects the maximum possible width of the screen.                                                                  |
 | Drawer Only: **Height**        | client | 60(vh)  | Sets the height of the GM Screen Drawer.                                                                                                                                                            |
 | Drawer Only: **Width**         | client | 100(%)  | Calculated as a percentage of the available screen width after the sidebar and right margin are taken into account.                                                                                 |
@@ -72,6 +75,7 @@ https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/releases/latest/download/mo
 Note that changing the grid dimensions after populating the grid might cause unexpected results, and odds are you will have to clear the grid and repopulate things.
 
 ### Tab Configuration
+
 ![Screenshot of the GM Screen Tab Configuration](readme-img/tab-config.png)
 
 | **Name**             | Description                                                                                                                          |
@@ -81,15 +85,6 @@ Note that changing the grid dimensions after populating the grid might cause une
 | **Rows Override**    | Override the number of rows in this specific grid tab.                                                                               |
 | **Shared**           | Controls whether or not this tab is also visible to players. If there are no shared grids, the players do not see the Screen at all. |
 | **Delete**           | Removes a Tab.                                                                                                                       |
-
-There is no current way to reorder tabs once created.
-
-### Entity Sheet Configuration
-
-It is possible to select a specific sheet for use when an Entity is rendered in the GM Screen which the same entity will not use during normal usage. The best example of this would be to use a specifically designed compact sheet for GM Screen view, but have the normal sheet for usual usage.
-
-![Screenshot of the Entity Sheet Configuration](readme-img/entity-sheet-config.png)
-
 
 ## Compatibility
 
@@ -104,32 +99,9 @@ I'm honestly not sure how well this will play with modules that make changes to 
 | [Monk's Enhanced Journal](https://github.com/ironmonk88/monks-enhanced-journal) |        :x:         | Not compatible.                                          |
 | [PDF Foundry](https://github.com/Djphoenix719/PDFoundry)                        |        :x:         | Currently not possible to embed pdfs into the GM Screen. |
 
-## API
-
-After the hook `gmScreenReady` is fired, the following api methods are expected to be on `game.modules.get('gm-screen')?.api`:
-### `toggleGmScreenVisibility(isOpen: boolean)`
-
-Opens or Closes the GM Screen. By default will toggle the current state.
-
-```js
-game.modules.get('gm-screen')?.api?.toggleGmScreenVisibility(false); // always closes
-game.modules.get('gm-screen')?.api?.toggleGmScreenVisibility(true); // always opens
-game.modules.get('gm-screen')?.api?.toggleGmScreenVisibility(); // always toggles
-```
-
-
-### `Hooks.callAll('gmScreenOpenClose', cb)`
-
-This hook is called when the GM Screen Opens of Closes with the following as the callback:
-
-```ts
-(app: Application, options: {isOpen: true}) => void
-```
-
 ## Known Issues
 
 - The grid does not refresh automatically when settings are changed, click the "refresh" button.
-- The titles of cells do not refresh automatically when the entity is renamed.
 - Some information will appear to players if they are shared a screen that contains things they do not have permission to view normally.
 - It is possible to overlap your cells with column/row spanning. It should not be possible to make it so you cannot recover from such a situation manually.
 
@@ -148,16 +120,16 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/saif-ellafi"><img src="https://avatars.githubusercontent.com/u/27952699?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Saif Addin</b></sub></a><br /><a href="https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/commits?author=saif-ellafi" title="Code">💻</a></td>
-    <td align="center"><a href="http://lordzeel.com"><img src="https://avatars.githubusercontent.com/u/1721836?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zeel</b></sub></a><br /><a href="https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/commits?author=zeel01" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/saif-ellafi"><img src="https://avatars.githubusercontent.com/u/27952699?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Saif Addin</b></sub></a><br /><a href="https://github.com/samulopez/foundryvtt-gmScreen/commits?author=saif-ellafi" title="Code">💻</a></td>
+    <td align="center"><a href="http://lordzeel.com"><img src="https://avatars.githubusercontent.com/u/1721836?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zeel</b></sub></a><br /><a href="https://github.com/samulopez/foundryvtt-gmScreen/commits?author=zeel01" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Git-GoR"><img src="https://avatars.githubusercontent.com/u/58085266?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Git-GoR</b></sub></a><br /><a href="#translation-Git-GoR" title="Translation">🌍</a></td>
     <td align="center"><a href="https://github.com/lozalojo"><img src="https://avatars.githubusercontent.com/u/16079668?v=4?s=100" width="100px;" alt=""/><br /><sub><b>José E. Lozano</b></sub></a><br /><a href="#translation-lozalojo" title="Translation">🌍</a></td>
     <td align="center"><a href="https://github.com/CarnVanBeck"><img src="https://avatars.githubusercontent.com/u/1398052?v=4?s=100" width="100px;" alt=""/><br /><sub><b>CarnVanBeck</b></sub></a><br /><a href="#translation-CarnVanBeck" title="Translation">🌍</a></td>
-    <td align="center"><a href="https://github.com/DarKDinDoN"><img src="https://avatars.githubusercontent.com/u/1687854?v=4?s=100" width="100px;" alt=""/><br /><sub><b>DarKDinDoN</b></sub></a><br /><a href="https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/commits?author=DarKDinDoN" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/DarKDinDoN"><img src="https://avatars.githubusercontent.com/u/1687854?v=4?s=100" width="100px;" alt=""/><br /><sub><b>DarKDinDoN</b></sub></a><br /><a href="https://github.com/samulopez/foundryvtt-gmScreen/commits?author=DarKDinDoN" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/BrotherSharper"><img src="https://avatars.githubusercontent.com/u/41280723?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Brother Sharp</b></sub></a><br /><a href="#translation-BrotherSharper" title="Translation">🌍</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/Shuggaloaf"><img src="https://avatars.githubusercontent.com/u/79543184?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Earl Shuggaloaf</b></sub></a><br /><a href="https://github.com/ElfFriend-DnD/foundryvtt-gmScreen/commits?author=Shuggaloaf" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Shuggaloaf"><img src="https://avatars.githubusercontent.com/u/79543184?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Earl Shuggaloaf</b></sub></a><br /><a href="https://github.com/samulopez/foundryvtt-gmScreen/commits?author=Shuggaloaf" title="Code">💻</a></td>
   </tr>
 </table>
 
