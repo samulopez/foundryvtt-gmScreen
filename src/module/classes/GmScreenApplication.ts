@@ -832,6 +832,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             return;
           }
           const cellId = `#${gridEntry.id}`;
+          const { entryId } = gridEntry.dataset;
 
           log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry });
 
@@ -842,6 +843,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
               });
 
               if (!application) {
+                if (entryId) {
+                  // remove old applications that can't be rendered
+                  await this.removeEntryFromActiveGrid(entryId, cellId.replace('#', ''));
+                }
+
                 throw new Error('no application exists to render');
               }
 

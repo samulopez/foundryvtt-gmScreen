@@ -37,4 +37,12 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
   get id() {
     return `gmscreen-journal-${this.document.id}`;
   }
+
+  async close(...args) {
+    if (args.length === 0) {
+      return super.close(...args);
+    }
+    // prevent closing if esc is pressed
+    return this;
+  }
 }
