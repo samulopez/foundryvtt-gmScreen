@@ -34,7 +34,8 @@ type GmScreenApp =
   | (ActorSheet & { render: (force?: boolean) => void })
   | (ItemSheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.journal.JournalEntrySheet & { render: (force?: boolean) => void })
-  | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void });
+  | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void })
+  | (foundry.applications.sheets.ActorSheetV2 & { render: (force?: boolean) => void });
 
 export class GmScreenApplication extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -751,6 +752,33 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         editable: false,
         cellId,
       });
+    } else if (sheet instanceof foundry.applications.sheets.ActorSheetV2) {
+      log(false, `creating ActorSheetV2 for "${relevantDocument.name}"`, {
+        cellId,
+      });
+
+      // @ts-expect-error Type 'Function' has no construct signatures
+      const CompactDocumentSheet: foundry.applications.sheets.ActorSheetV2 & CustomOptions = new SheetClass({
+        document: relevantDocument,
+        editable: false,
+        cellId,
+        window: {
+          frame: false,
+        },
+      });
+
+      CompactDocumentSheet._replaceHTML = function replaceHTML() {
+        this.cellId = cellId;
+
+        $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+
+        const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+        gridCellContent.html(this.form);
+        gridCellContent.find('.window-header').remove();
+        gridCellContent.children().wrap("<div class='window-content'></div>");
+      };
+
+      this.apps[cellId] = CompactDocumentSheet;
     } else if (sheet instanceof foundry.applications.sheets.RollTableSheet) {
       log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
         cellId,
@@ -794,7 +822,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           html,
         });
         gridCellContent.append(html);
-        gridCellContent.find('form').wrap("<div class='window-content'></div>");
+        gridCellContent.children().wrap("<div class='window-content'></div>");
         this._element = html;
       };
 
@@ -807,7 +835,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           return;
         }
         gridCellContent.html(pureHTML);
-        gridCellContent.find('form').wrap("<div class='window-content'></div>");
+        gridCellContent.children().wrap("<div class='window-content'></div>");
         this._element = html;
       };
 
