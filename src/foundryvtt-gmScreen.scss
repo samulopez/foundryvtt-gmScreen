@@ -246,6 +246,10 @@ $transition-timing: 400ms;
     max-height: unset !important; // prevent unecessary max heights
     max-width: 100% !important;
 
+    > .window-content {
+      overflow-y: auto;
+    }
+
     > form {
       width: 100%;
       overflow: unset; // fix PF2e
