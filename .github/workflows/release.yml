@@ -1,9 +1,9 @@
-name: Module CI/CD
+name: release
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
@@ -51,5 +51,15 @@ jobs:
           draft: false
           prerelease: ${{ steps.set-pr-deploy-info.outputs.prerelease }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: './dist/gm-screen/module.json,./dist/module.zip'
+          artifacts: "./dist/gm-screen/module.json,./dist/module.zip"
           tag: ${{ github.ref_name }}
+
+      # Publish this new version to the Foundry VTT Module Listing
+      - name: Publish to Foundry VTT Repo
+        id: publish_foundry_repo
+        run: npx @ghost-fvtt/foundry-publish
+        env:
+          FVTT_DRY_RUN: ${{ steps.set-pr-deploy-info.outputs.prerelease }}
+          FVTT_MANIFEST_PATH: "src/module.json"
+          FVTT_TOKEN: ${{ secrets.FVTT_TOKEN }}
+          FVTT_MANIFEST_URL: https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/module.json
