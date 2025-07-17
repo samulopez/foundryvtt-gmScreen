@@ -1,7 +1,7 @@
 {
   "name": "foundryvtt-gm-screen",
   "private": true,
-  "version": "4.0.5-beta.1",
+  "version": "5.0.0",
   "description": "",
   "engines": {
     "node": ">=20.0.0"
