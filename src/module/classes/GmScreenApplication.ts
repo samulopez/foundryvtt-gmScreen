@@ -37,6 +37,18 @@ type GmScreenApp =
   | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.ActorSheetV2 & { render: (force?: boolean) => void });
 
+type ActorV2Constructor = new (
+  options: Partial<foundry.applications.sheets.ActorSheetV2.Configuration>
+) => foundry.applications.sheets.ActorSheetV2 & CustomOptions;
+
+type ItemAndActorV1Constructor = new (
+  x: Actor | Item,
+  options: {
+    width?: string;
+    height?: string;
+  }
+) => (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions);
+
 export class GmScreenApplication extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
@@ -742,7 +754,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       name: SheetClass?.name,
     });
 
-    if (sheet instanceof foundry.applications.sheets.journal.JournalEntrySheet) {
+    if (relevantDocument instanceof JournalEntry) {
       log(false, `creating compact journal entry for "${relevantDocument.name}"`, {
         cellId,
       });
@@ -752,20 +764,33 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         editable: false,
         cellId,
       });
-    } else if (sheet instanceof foundry.applications.sheets.ActorSheetV2) {
+    } else if (relevantDocument instanceof RollTable) {
+      log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
+        cellId,
+      });
+
+      this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
+    } else if (sheet instanceof foundry.applications.sheets.ActorSheetV2 && relevantDocument instanceof Actor) {
+      if (!SheetClass) {
+        log(true, 'no sheet class found for relevantDocument', {
+          relevantDocument,
+          entityUuid,
+        });
+        return undefined;
+      }
+
       log(false, `creating ActorSheetV2 for "${relevantDocument.name}"`, {
         cellId,
       });
 
-      // @ts-expect-error Type 'Function' has no construct signatures
-      const CompactDocumentSheet: foundry.applications.sheets.ActorSheetV2 & CustomOptions = new SheetClass({
-        document: relevantDocument,
-        editable: false,
-        cellId,
-        window: {
-          frame: false,
-        },
-      });
+      const CompactDocumentSheet: foundry.applications.sheets.ActorSheetV2 & CustomOptions =
+        new (SheetClass as ActorV2Constructor)({
+          document: relevantDocument,
+          window: {
+            ...this.options.window,
+            frame: false,
+          },
+        });
 
       CompactDocumentSheet._replaceHTML = function replaceHTML() {
         this.cellId = cellId;
@@ -779,12 +804,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       };
 
       this.apps[cellId] = CompactDocumentSheet;
-    } else if (sheet instanceof foundry.applications.sheets.RollTableSheet) {
-      log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
-        cellId,
-      });
-
-      this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
     } else {
       if (!SheetClass) {
         log(true, 'no sheet class found for relevantDocument', {
@@ -797,14 +816,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         cellId,
       });
 
-      // @ts-expect-error Type 'Function' has no construct signatures
-      const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) = new SheetClass(
-        relevantDocument,
-        {
+      const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) =
+        new (SheetClass as ItemAndActorV1Constructor)(relevantDocument, {
           width: '100%',
           height: '100%',
-        }
-      );
+        });
 
       CompactDocumentSheet.options.editable = false;
       CompactDocumentSheet.options.popOut = false;
