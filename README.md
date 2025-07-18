@@ -1,12 +1,6 @@
 # GM Screen
 
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
-
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
-![Latest Release Download Count](https://img.shields.io/badge/dynamic/json?label=Downloads@latest&query=assets%5B1%5D.download_count&url=https%3A%2F%2Fapi.github.com%2Frepos%2FElfFriend-DnD%2Ffoundryvtt-gmScreen%2Freleases%2Flatest)
+![Latest Release Download Count](https://img.shields.io/badge/dynamic/json?label=Downloads@latest&query=assets%5B1%5D.download_count&url=https%3A%2F%2Fapi.github.com%2Frepos%2Fsamulopez%2Ffoundryvtt-gmScreen%2Freleases%2Flatest)
 ![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fgm-screen&colorB=4aa94a)
 [![Foundry Hub Endorsements](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fgm-screen%2Fshield%2Fendorsements)](https://www.foundryvtt-hub.com/package/gm-screen/)
 [![Foundry Hub Comments](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fgm-screen%2Fshield%2Fcomments)](https://www.foundryvtt-hub.com/package/gm-screen/)
@@ -24,6 +18,17 @@ Creates a tabbed modular grid that GMs can populate with journal entries, rollab
 
 Additionally, any screen you create as GM can be set to be shared with players, so you can provide them with a cheat sheet that is always readily available to them. Be sure you set the permissions correctly on the entities themselves before trying to share them with players on a screen!
 
+## Installation
+
+To install, search for "GM Screen" in your module browser inside Foundry VTT.
+
+Alternatively, you can manually install the module by following these steps:
+
+1. Inside Foundry, select the Game Modules tab in the Configuration and Setup menu.
+2. Click the Install Module button and enter the following URL: https://github.com/samulopez/foundryvtt-gmScreen/releases/latest/download/module.json
+
+3. Click Install and wait for installation to complete.
+
 ## Usage
 
 <video src="readme-img/tab-config-demo.mp4" alt="Tab Configuration Demo Video"></video>
@@ -33,14 +38,6 @@ Additionally, any screen you create as GM can be set to be shared with players, 
 - Each cell has settings which allow for that cell to span multiple columns or rows.
 - Clicking the little icon on the top-right of the cell will pop out the full-sized sheet for whatever entity is in the cell. The GM Screen is intended to be read-only, so edits to things inside it will happen for the most part by popping the entity out.
 - Tabs can be reordered from the settings.
-
-## Installation
-
-Module JSON:
-
-```
-https://github.com/samulopez/foundryvtt-gmScreen/releases/latest/download/module.json
-```
 
 ## Screenshots
 
@@ -88,16 +85,7 @@ Note that changing the grid dimensions after populating the grid might cause une
 
 ## Compatibility
 
-I'm honestly not sure how well this will play with modules that make changes to how journal articles or roll tables interact.
-
-| **Name**                                                                        |       Works        | Notes                                                    |
-| ------------------------------------------------------------------------------- | :----------------: | -------------------------------------------------------- |
-| [OneJournal](https://gitlab.com/fvtt-modules-lab/one-journal)                   | :heavy_check_mark: | Works as expected.                                       |
-| [MEME](https://github.com/Moerill/fvtt-markdown-editor)                         | :heavy_check_mark: | Markdown Renders as expected.                            |
-| [Inline Webviewer](https://github.com/ardittristan/VTTInlineWebviewer)          | :heavy_check_mark: | Journal entries with webviews work as expected.          |
-| [Kanka-Foundry](https://github.com/eXaminator/kanka-foundry)                    | :heavy_check_mark: | Journal entries are displayed as expected.               |
-| [Monk's Enhanced Journal](https://github.com/ironmonk88/monks-enhanced-journal) |        :x:         | Not compatible.                                          |
-| [PDF Foundry](https://github.com/Djphoenix719/PDFoundry)                        |        :x:         | Currently not possible to embed pdfs into the GM Screen. |
+No information for compatibility with other modules is available at this time. The module is compatible with Foundry VTT v13.0.0 and later.
 
 ## Known Issues
 
@@ -106,6 +94,8 @@ I'm honestly not sure how well this will play with modules that make changes to 
 - It is possible to overlap your cells with column/row spanning. It should not be possible to make it so you cannot recover from such a situation manually.
 
 ## Acknowledgements
+
+Forked from ElfFriend-DnD's [gm-screen-repository](https://github.com/ElfFriend-DnD/foundryvtt-gmScreen)
 
 Bootstrapped with Nick East's [create-foundry-project](https://gitlab.com/foundry-projects/foundry-pc/create-foundry-project).
 
