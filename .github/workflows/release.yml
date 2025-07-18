@@ -39,6 +39,12 @@ jobs:
           fi
           echo "prerelease=$prerelease" >> $GITHUB_OUTPUT
 
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Create a release for this specific version
       - name: Create Release
         id: create_version_release
@@ -46,8 +52,7 @@ jobs:
         with:
           allowUpdates: true # set this to false if you want to prevent updating existing releases
           name: ${{ github.ref_name }}
-          body: |
-            ${{ steps.changelog.outputs.clean_changelog }}
+          body: ${{steps.github_release.outputs.changelog}}
           draft: false
           prerelease: ${{ steps.set-pr-deploy-info.outputs.prerelease }}
           token: ${{ secrets.GITHUB_TOKEN }}
