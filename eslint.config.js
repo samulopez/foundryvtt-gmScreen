@@ -1,8 +1,10 @@
 import path from 'node:path';
 
+import eslintPluginYml from 'eslint-plugin-yml';
 import prettierPlugin from 'eslint-plugin-prettier';
 import { rules as prettierConfigRules } from 'eslint-config-prettier';
 import { configs, plugins } from 'eslint-config-airbnb-extended';
+import json from '@eslint/json';
 import js from '@eslint/js';
 import { includeIgnoreFile } from '@eslint/compat';
 
@@ -12,6 +14,7 @@ const jsConfig = [
   // ESLint Recommended Rules
   {
     name: 'js/config',
+    files: ['**/*.js', '**/*.mjs'],
     ...js.configs.recommended,
   },
   // Stylistic Plugin
@@ -35,6 +38,7 @@ const typescriptConfig = [
   // Airbnb Base TypeScript Config
   ...configs.base.typescript,
   {
+    files: ['**/*.js', '**/*.cjs', '**/*.mjs', '**/*.jsx', '**/*.ts', '**/*.cts', '**/*.mts', '**/*.tsx', '**/*.d.ts'],
     rules: {
       'import-x/order': [
         'error',
@@ -52,6 +56,16 @@ const typescriptConfig = [
       'no-underscore-dangle': 'off',
       'class-methods-use-this': 'off',
     },
+  },
+];
+
+const jsonConfig = [
+  {
+    name: 'json/config',
+    files: ['**/*.json'],
+    ignores: ['**/package-lock.json'],
+    language: 'json/json',
+    ...json.configs.recommended,
   },
 ];
 
@@ -82,6 +96,10 @@ export default [
   ...nodeConfig,
   // TypeScript Config
   ...typescriptConfig,
+  // JSON Config
+  ...jsonConfig,
+  // YAML Config
+  ...eslintPluginYml.configs['flat/recommended'],
   // Prettier Config
   ...prettierConfig,
 ];
