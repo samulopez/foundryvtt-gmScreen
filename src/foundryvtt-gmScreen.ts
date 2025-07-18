@@ -144,7 +144,6 @@ Hooks.on('renderJournalDirectory', (_app, html) => {
   }
 });
 
-// @ts-expect-error custom hooks don't have types
 Hooks.once('devModeReady', ({ registerPackageDebugFlag }) => {
   registerPackageDebugFlag(MODULE_ID);
 });

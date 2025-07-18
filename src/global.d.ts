@@ -26,3 +26,11 @@ declare global {
     'gm-screen.rows': number;
   }
 }
+
+declare module 'fvtt-types/configuration' {
+  namespace Hooks {
+    interface HookConfig {
+      devModeReady: (app: { registerPackageDebugFlag: (moduleId: string) => void }) => void;
+    }
+  }
+}
