@@ -14,7 +14,7 @@ This fork wouldn't exist without the work of ElfFriend-DnD on the main repositor
 
 ![GM Screen Cover Image](readme-img/cover-image.png)
 
-Creates a tabbed modular grid that GMs can populate with journal entries, rollable tables, actors, and items. Customize your "GM Screen" by dragging and dropping items into cells and have its information available at any time from a button on the bottom right of the UI, near the sidebar. Roll rollable tables, open linked entities, and even place actor sheets into these cells. Obviously the space constraints mean some sheets will work better than others.
+Creates a tabbed modular grid that GMs can populate with journal entries, journal pages, rollable tables, actors, and items. Customize your "GM Screen" by dragging and dropping items into cells and have its information available at any time from a button on the bottom right of the UI, near the sidebar. Roll rollable tables, open linked entities, and even place actor sheets into these cells. Obviously the space constraints mean some sheets will work better than others.
 
 Additionally, any screen you create as GM can be set to be shared with players, so you can provide them with a cheat sheet that is always readily available to them. Be sure you set the permissions correctly on the entities themselves before trying to share them with players on a screen!
 
@@ -34,7 +34,7 @@ Alternatively, you can manually install the module by following these steps:
 <video src="readme-img/tab-config-demo.mp4" alt="Tab Configuration Demo Video"></video>
 
 - Set up tabs in the Module Settings, and optionally share some with your players.
-- Drag and drop Journal Entries, Rollable Tables, even Actors and Items into cells on the GM Screen.
+- Drag and drop Journal Entries, Journal Pages, Rollable Tables, even Actors and Items into cells on the GM Screen.
 - Each cell has settings which allow for that cell to span multiple columns or rows.
 - Clicking the little icon on the top-right of the cell will pop out the full-sized sheet for whatever entity is in the cell. The GM Screen is intended to be read-only, so edits to things inside it will happen for the most part by popping the entity out.
 - Tabs can be reordered from the settings.

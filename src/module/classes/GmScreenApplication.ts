@@ -12,6 +12,7 @@ import { GmScreenConfig, GmScreenGrid, GmScreenGridEntry } from '../../gridTypes
 
 import { GmScreenSettings } from './GmScreenSettings';
 import { CompactRollTableDisplay } from './CompactRollTableDisplay';
+import { CompactJournalEntryPageDisplay } from './CompactJournalEntryPageDisplay';
 import { CompactJournalEntryDisplay } from './CompactJournalEntryDisplay';
 
 enum ClickAction {
@@ -34,6 +35,7 @@ type GmScreenApp =
   | (ActorSheet & { render: (force?: boolean) => void })
   | (ItemSheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.journal.JournalEntrySheet & { render: (force?: boolean) => void })
+  | (foundry.applications.sheets.journal.JournalEntryPageHandlebarsSheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.ActorSheetV2 & { render: (force?: boolean) => void });
 
@@ -686,7 +688,9 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
    *
    * @param entityUuid - relevant entityUuid
    */
-  async getRelevantGmScreenDocument(entityUuid): Promise<Actor | Item | JournalEntry | RollTable | undefined> {
+  async getRelevantGmScreenDocument(
+    entityUuid
+  ): Promise<Actor | Item | JournalEntry | RollTable | JournalEntryPage | undefined> {
     const relevantDocument = await fromUuid(entityUuid);
 
     if (
@@ -694,7 +698,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         relevantDocument instanceof Actor ||
         relevantDocument instanceof Item ||
         relevantDocument instanceof JournalEntry ||
-        relevantDocument instanceof RollTable
+        relevantDocument instanceof RollTable ||
+        relevantDocument instanceof JournalEntryPage
       )
     ) {
       return undefined;
@@ -754,6 +759,14 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       name: SheetClass?.name,
     });
 
+    if (!SheetClass) {
+      log(true, 'no sheet class found for relevantDocument', {
+        relevantDocument,
+        entityUuid,
+      });
+      return undefined;
+    }
+
     if (relevantDocument instanceof JournalEntry) {
       log(false, `creating compact journal entry for "${relevantDocument.name}"`, {
         cellId,
@@ -764,6 +777,12 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         editable: false,
         cellId,
       });
+    } else if (relevantDocument instanceof JournalEntryPage) {
+      log(false, `creating compact JournalEntryPage for "${relevantDocument.name}"`, {
+        cellId,
+      });
+
+      this.apps[cellId] = new CompactJournalEntryPageDisplay({ document: relevantDocument, cellId });
     } else if (relevantDocument instanceof RollTable) {
       log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
         cellId,
@@ -771,14 +790,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
       this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
     } else if (sheet instanceof foundry.applications.sheets.ActorSheetV2 && relevantDocument instanceof Actor) {
-      if (!SheetClass) {
-        log(true, 'no sheet class found for relevantDocument', {
-          relevantDocument,
-          entityUuid,
-        });
-        return undefined;
-      }
-
       log(false, `creating ActorSheetV2 for "${relevantDocument.name}"`, {
         cellId,
       });
@@ -805,13 +816,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
       this.apps[cellId] = CompactDocumentSheet;
     } else {
-      if (!SheetClass) {
-        log(true, 'no sheet class found for relevantDocument', {
-          relevantDocument,
-          entityUuid,
-        });
-        return undefined;
-      }
       log(false, `creating compact generic for "${relevantDocument.name}"`, {
         cellId,
       });
@@ -1019,7 +1023,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     });
 
     // only move forward if this is a JournalEntry or RollTable
-    if (!['JournalEntry', 'RollTable', 'Item', 'Actor'].includes(data.type)) {
+    if (!['JournalEntry', 'JournalEntryPage', 'RollTable', 'Item', 'Actor'].includes(data.type)) {
       return;
     }
 
