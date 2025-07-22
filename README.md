@@ -7,7 +7,7 @@
 
 ![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsamulopez%2Ffoundryvtt-gmScreen%2Fmain%2Fsrc%2Fmodule.json&label=Foundry%20Version&query=$.compatibility.verified&colorB=orange)
 
-This fork wouldn't exist without the work of ElfFriend-DnD on the main repository.
+This fork wouldn't exist without ElfFriend-DnD's work on the main repository.
 
 [![ko-fi](https://img.shields.io/badge/-buy%20him%20a%20coke-%23FF5E5B)](https://ko-fi.com/elffriend)
 [![patreon](https://img.shields.io/badge/-patreon-%23FF424D)](https://www.patreon.com/ElfFriend_DnD)
