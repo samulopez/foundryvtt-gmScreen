@@ -460,10 +460,21 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           if (relevantDocumentSheet.rendered) {
             relevantDocumentSheet.maximize();
             relevantDocumentSheet.bringToTop();
+            return;
           }
+          if (relevantDocument instanceof JournalEntryPage && relevantDocument.type === 'image') {
+            const ip = new foundry.applications.apps.ImagePopout({
+              src: relevantDocumentSheet.options.document.src,
+              uuid: entityUuid,
+              window: { title: relevantDocument.name },
+            });
 
+            // Display the image popout
+            ip.render({ force: true });
+            return;
+          }
           // Otherwise render the relevantEntitySheet
-          else relevantDocumentSheet.render(true);
+          relevantDocumentSheet.render(true);
         } catch (error) {
           log(true, 'error opening entity sheet', error);
         }
