@@ -246,11 +246,17 @@ $transition-timing: 400ms;
     max-height: unset !important; // prevent unecessary max heights
     max-width: 100% !important;
 
+    > .dnd5e2.actor {
+      // needed to show the nav on the right on dnd5e
+      width: calc(100% - 35px);
+    }
+
     > .window-content {
       overflow-y: auto;
     }
 
     > form {
+      height: 100%;
       width: 100%;
       overflow: unset; // fix PF2e
       padding: 0;
@@ -276,9 +282,10 @@ $transition-timing: 400ms;
       height: 100%;
     }
 
-    img {
+    > img {
       max-width: 100%;
       height: auto;
+      flex: unset;
     }
 
     /* dnd5e specific tweaks */
