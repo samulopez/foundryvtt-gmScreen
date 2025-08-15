@@ -4,7 +4,9 @@ import {
   getLocalization,
   getUserCellConfigurationInput,
   getUserViewableGrids,
+  isDnd5eSystem,
   log,
+  postRenderV2,
   updateCSSPropertyVariable,
 } from '../helpers';
 import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
@@ -29,6 +31,7 @@ interface CustomOptions {
   cellId: string;
   _injectHTML(html: JQuery): void;
   _replaceHTML(element: JQuery, html: JQuery): void;
+  _postRender(): Promise<void>;
 }
 
 type GmScreenApp =
@@ -37,17 +40,24 @@ type GmScreenApp =
   | (foundry.applications.sheets.journal.JournalEntrySheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.journal.JournalEntryPageHandlebarsSheet & { render: (force?: boolean) => void })
   | (foundry.applications.sheets.RollTableSheet & { render: (force?: boolean) => void })
-  | (foundry.applications.sheets.ActorSheetV2 & { render: (force?: boolean) => void });
+  | (foundry.applications.sheets.ActorSheetV2 & { render: (force?: boolean) => void })
+  | (foundry.applications.sheets.ItemSheetV2 & { render: (force?: boolean) => void });
 
 type ActorV2Constructor = new (
   options: Partial<foundry.applications.sheets.ActorSheetV2.Configuration>
 ) => foundry.applications.sheets.ActorSheetV2 & CustomOptions;
+
+type ItemV2Constructor = new (
+  options: Partial<foundry.applications.sheets.ItemSheetV2>
+) => foundry.applications.sheets.ItemSheetV2 & CustomOptions;
 
 type ItemAndActorV1Constructor = new (
   x: Actor | Item,
   options: {
     width?: string;
     height?: string;
+    positioned?: boolean;
+    resizable?: boolean;
   }
 ) => (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions);
 
@@ -677,20 +687,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       this._dragListeners(html);
     }
 
-    $(html).on('click', 'button', this.handleClickEvent.bind(this));
-    $(html).on('click', 'a', this.handleClickEvent.bind(this));
-
-    // handle select of an entity
-    $(html).on('change', 'select', async (e) => {
-      const gridElementPosition = getGridElementsPosition($(e.target).parent());
-      const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
-      const newEntry: GmScreenGridEntry = {
-        ...gridElementPosition,
-        entryId: newEntryId,
-        entityUuid: e.target.value,
-      };
-      this.addEntryToActiveGrid(newEntry);
-    });
+    $(html).on('click', '.gm-screen-actions button', this.handleClickEvent.bind(this));
+    $(html).on('click', '.gm-screen-grid-cell-header a', this.handleClickEvent.bind(this));
   }
 
   /**
@@ -778,103 +776,145 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       return undefined;
     }
 
-    if (relevantDocument instanceof JournalEntry) {
-      log(false, `creating compact journal entry for "${relevantDocument.name}"`, {
-        cellId,
-      });
+    switch (true) {
+      case relevantDocument instanceof JournalEntry:
+        log(false, `creating compact journal entry for "${relevantDocument.name}"`, {
+          cellId,
+        });
 
-      this.apps[cellId] = new CompactJournalEntryDisplay({
-        document: relevantDocument,
-        editable: false,
-        cellId,
-      });
-    } else if (relevantDocument instanceof JournalEntryPage) {
-      log(false, `creating compact JournalEntryPage for "${relevantDocument.name}"`, {
-        cellId,
-      });
-
-      this.apps[cellId] = new CompactJournalEntryPageDisplay({ document: relevantDocument, cellId });
-    } else if (relevantDocument instanceof RollTable) {
-      log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
-        cellId,
-      });
-
-      this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
-    } else if (sheet instanceof foundry.applications.sheets.ActorSheetV2 && relevantDocument instanceof Actor) {
-      log(false, `creating ActorSheetV2 for "${relevantDocument.name}"`, {
-        cellId,
-      });
-
-      const CompactDocumentSheet: foundry.applications.sheets.ActorSheetV2 & CustomOptions =
-        new (SheetClass as ActorV2Constructor)({
+        this.apps[cellId] = new CompactJournalEntryDisplay({
           document: relevantDocument,
-          window: {
-            ...this.options.window,
-            frame: false,
-          },
+          editable: false,
+          cellId,
+        });
+        break;
+
+      case relevantDocument instanceof JournalEntryPage:
+        log(false, `creating compact JournalEntryPage for "${relevantDocument.name}"`, {
+          cellId,
         });
 
-      CompactDocumentSheet._replaceHTML = function replaceHTML() {
-        this.cellId = cellId;
+        this.apps[cellId] = new CompactJournalEntryPageDisplay({ document: relevantDocument, cellId });
+        break;
 
-        $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
-
-        const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-        gridCellContent.html(this.form);
-        gridCellContent.find('.window-header').remove();
-        gridCellContent.children().wrap("<div class='window-content'></div>");
-      };
-
-      this.apps[cellId] = CompactDocumentSheet;
-    } else {
-      log(false, `creating compact generic for "${relevantDocument.name}"`, {
-        cellId,
-      });
-
-      const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) =
-        new (SheetClass as ItemAndActorV1Constructor)(relevantDocument, {
-          width: '100%',
-          height: '100%',
+      case relevantDocument instanceof RollTable:
+        log(false, `creating compact rollTableDisplay for "${relevantDocument.name}"`, {
+          cellId,
         });
 
-      CompactDocumentSheet.options.editable = false;
-      CompactDocumentSheet.options.popOut = false;
-      CompactDocumentSheet.cellId = cellId;
+        this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
+        break;
 
-      CompactDocumentSheet._injectHTML = function injectHTML(html) {
-        $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
-
-        const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-
-        log(false, 'CompactEntitySheet overwritten _injectHTML', {
-          targetElement: gridCellContent,
-          gridCellContent,
-          cellId: this.cellId,
-          html,
+      case sheet instanceof foundry.applications.sheets.ActorSheetV2 && relevantDocument instanceof Actor:
+        log(false, `creating ActorSheetV2 for "${relevantDocument.name}"`, {
+          cellId,
         });
-        gridCellContent.append(html);
-        gridCellContent.children().wrap("<div class='window-content'></div>");
-        this._element = html;
-      };
 
-      CompactDocumentSheet._replaceHTML = function replaceHTML(element, html) {
-        $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+        // eslint-disable-next-line no-case-declarations
+        const ActorDocumentSheet: foundry.applications.sheets.ActorSheetV2 & CustomOptions =
+          new (SheetClass as ActorV2Constructor)({
+            ...sheet.options,
+            id: `gmscreen-actor-${sheet.document.id}`,
+            classes: [],
+            document: relevantDocument,
+            window: {
+              ...sheet.options.window,
+              frame: isDnd5eSystem(),
+              positioned: false,
+              resizable: false,
+            },
+          });
 
-        const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-        const pureHTML = html.get(0);
-        if (!pureHTML) {
-          return;
-        }
-        gridCellContent.html(pureHTML);
-        gridCellContent.children().wrap("<div class='window-content'></div>");
-        this._element = html;
-      };
+        ActorDocumentSheet._postRender = postRenderV2(cellId);
+        // prevent closing if esc is pressed
+        ActorDocumentSheet.close = async function close() {
+          return this;
+        };
 
-      log(false, `created compact generic for "${relevantDocument.name}"`, {
-        sheet: CompactDocumentSheet,
-      });
+        this.apps[cellId] = ActorDocumentSheet;
+        break;
 
-      this.apps[cellId] = CompactDocumentSheet;
+      case sheet instanceof foundry.applications.api.DocumentSheetV2 && relevantDocument instanceof Item:
+        log(false, `creating ItemSheetV2 for "${relevantDocument.name}"`, {
+          cellId,
+        });
+
+        // eslint-disable-next-line no-case-declarations
+        const ItemDocumentSheet: foundry.applications.sheets.ItemSheetV2 & CustomOptions =
+          new (SheetClass as ItemV2Constructor)({
+            ...sheet.options,
+            id: `gmscreen-item-${sheet.document.id}`,
+            document: relevantDocument,
+            window: {
+              ...sheet.options.window,
+              frame: isDnd5eSystem(),
+              positioned: false,
+              resizable: false,
+            },
+          });
+
+        ItemDocumentSheet._postRender = postRenderV2(cellId);
+        // prevent closing if esc is pressed
+        ItemDocumentSheet.close = async function close() {
+          return this;
+        };
+
+        this.apps[cellId] = ItemDocumentSheet;
+        break;
+
+      default:
+        log(false, `creating compact generic for "${relevantDocument.name}"`, {
+          cellId,
+        });
+
+        // eslint-disable-next-line no-case-declarations
+        const CompactDocumentSheet: (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions) =
+          new (SheetClass as ItemAndActorV1Constructor)(relevantDocument, {
+            ...sheet.options,
+            width: '100%',
+            height: '100%',
+            positioned: false,
+            resizable: false,
+          });
+
+        CompactDocumentSheet.options.editable = false;
+        CompactDocumentSheet.options.popOut = false;
+        CompactDocumentSheet.cellId = cellId;
+
+        CompactDocumentSheet._injectHTML = function injectHTML(html) {
+          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+
+          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+
+          log(false, 'CompactEntitySheet overwritten _injectHTML', {
+            targetElement: gridCellContent,
+            gridCellContent,
+            cellId: this.cellId,
+            html,
+          });
+          gridCellContent.append(html);
+          gridCellContent.children().wrap("<section class='window-content'></section>");
+          this._element = html;
+        };
+
+        CompactDocumentSheet._replaceHTML = function replaceHTML(element, html) {
+          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+
+          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+          const pureHTML = html.get(0);
+          if (!pureHTML) {
+            return;
+          }
+          gridCellContent.html(pureHTML);
+          gridCellContent.children().wrap("<section class='window-content'></section>");
+          this._element = html;
+        };
+
+        log(false, `created compact generic for "${relevantDocument.name}"`, {
+          sheet: CompactDocumentSheet,
+        });
+
+        this.apps[cellId] = CompactDocumentSheet;
     }
 
     return this.apps[cellId];
@@ -999,7 +1039,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
     newAppData.tabs = Object.keys(grids).map((id) => ({
       id: grids[id].grid.id,
-      group: 'primary',
+      group: 'gmScreen-primary',
       label: grids[id].grid.name,
       cssClass: grids[id].grid.cssClass,
     }));
