@@ -4,7 +4,6 @@ import {
   getLocalization,
   getUserCellConfigurationInput,
   getUserViewableGrids,
-  isDnd5eSystem,
   log,
   postRenderV2,
   updateCSSPropertyVariable,
@@ -819,7 +818,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             document: relevantDocument,
             window: {
               ...sheet.options.window,
-              frame: isDnd5eSystem(),
+              frame: true,
               positioned: false,
               resizable: false,
             },
@@ -847,7 +846,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             document: relevantDocument,
             window: {
               ...sheet.options.window,
-              frame: isDnd5eSystem(),
+              frame: true,
               positioned: false,
               resizable: false,
             },

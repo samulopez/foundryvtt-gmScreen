@@ -198,10 +198,6 @@ export function updateCSSPropertyVariable(
   });
 }
 
-export function isDnd5eSystem(): boolean {
-  return getGame().world.system === 'dnd5e';
-}
-
 export function postRenderV2(cellId: string) {
   return async function internalPostRenderV2() {
     this.cellId = cellId;
@@ -209,7 +205,7 @@ export function postRenderV2(cellId: string) {
     $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
 
     const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-    gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content', 'app']);
+    gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
     gridCellContent.html(this.form);
     gridCellContent.find('.window-header').css('visibility', 'hidden');
   };
