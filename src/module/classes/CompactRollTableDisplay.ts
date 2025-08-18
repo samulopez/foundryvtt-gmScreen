@@ -39,4 +39,12 @@ export class CompactRollTableDisplay extends foundry.applications.sheets.RollTab
   get id() {
     return `gmscreen-rolltable-${this.document.id}`;
   }
+
+  async close(...args) {
+    if (args.length === 0) {
+      return super.close(...args);
+    }
+    // prevent closing if esc is pressed
+    return this;
+  }
 }
