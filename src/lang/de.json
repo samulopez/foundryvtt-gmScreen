@@ -84,6 +84,10 @@
     "entitySheet": {
       "Label": "SL Schirm Bogen",
       "Hint": "Setze den Bogen, der speziell im SL Schirm für diesen Gegenstand verwendet werden soll."
+    },
+    "keybindings": {
+      "openCloseScreen": "Öffne/Schließe den SL Schirm",
+      "changeTab": "Wechsel den SL Schirm Tab"
     }
   }
 }

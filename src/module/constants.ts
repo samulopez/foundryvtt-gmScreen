@@ -13,6 +13,8 @@ export const TEMPLATES = {
   },
 };
 
+export const TAB_GROUP_NAME = 'gmScreen-primary';
+
 export enum MySettings {
   columns = 'columns',
   displayDrawer = 'display-as-drawer',
@@ -27,6 +29,9 @@ export enum MySettings {
   rows = 'rows',
 }
 
-export enum MyFlags {}
+export enum MyKeybindings {
+  openCloseScreen = 'openCloseScreen',
+  changeTab = 'changeTab',
+}
 
 export const numberRegex = /([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[eE]([+-]?\d+))?/;

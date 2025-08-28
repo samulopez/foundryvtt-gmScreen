@@ -8,7 +8,7 @@ import {
   postRenderV2,
   updateCSSPropertyVariable,
 } from '../helpers';
-import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
+import { MODULE_ABBREV, MODULE_ID, MySettings, TAB_GROUP_NAME, TEMPLATES } from '../constants';
 import { GmScreenConfig, GmScreenGrid, GmScreenGridEntry } from '../../gridTypes';
 
 import { GmScreenSettings } from './GmScreenSettings';
@@ -69,11 +69,15 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
   apps: Record<string, GmScreenApp>;
 
+  // used to allow players to switch tabs
+  currentTab: string;
+
   constructor(options = {}) {
     super(options);
     this.expanded = false;
     this.data = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
     this.apps = {};
+    this.currentTab = this.data.activeGridId;
 
     const columns = getGame().settings.get(MODULE_ID, MySettings.columns);
     const rows = getGame().settings.get(MODULE_ID, MySettings.rows);
@@ -495,6 +499,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       }
       case ClickAction.tab: {
         const newActiveGridId = e.currentTarget.dataset.tab;
+        this.currentTab = newActiveGridId ?? this.currentTab;
         // do nothing if we are not the GM or if nothing changes
         if (!getGame().user?.isGM || newActiveGridId === this.data.activeGridId || !newActiveGridId) {
           return;
@@ -523,6 +528,37 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         break;
       }
       default:
+    }
+  }
+
+  async switchTab() {
+    const tabs = Object.keys(this.userViewableGrids);
+    if (tabs.length <= 1) {
+      return;
+    }
+
+    const isGM = getGame().user?.isGM;
+    const currentIndex = tabs.indexOf(isGM ? this.data.activeGridId : this.currentTab);
+    const newIndex = (currentIndex + 1) % tabs.length;
+    const newActiveGridId = tabs[newIndex];
+
+    log(false, 'trying to set active grid', { newActiveGridId });
+
+    try {
+      this.changeTab(newActiveGridId, TAB_GROUP_NAME);
+      this.currentTab = newActiveGridId;
+
+      if (!isGM) {
+        return;
+      }
+
+      const newGmScreenConfig = {
+        ...this.data,
+        activeGridId: newActiveGridId,
+      };
+      await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
+    } catch (error) {
+      log(true, 'error setting active tab', error);
     }
   }
 
@@ -576,8 +612,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     this.data = newData;
 
     if (Object.keys(diffData).length) {
-      if (Object.keys(diffData).every((key) => key === 'activeGridId')) {
-        log(false, 'not rerendering because only activeGridId changed');
+      if (
+        Object.keys(diffData).every((key) => key === 'activeGridId') ||
+        Object.values(diffData.grids || {}).every((grid) => Object.keys(grid).every((key) => key === 'cssClass'))
+      ) {
+        log(false, 'not rerendering because only activeGridId changed or cssClass changed');
         return;
       }
 
@@ -646,6 +685,10 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const html = $(this.element);
 
     $('.gm-screen-button').on('contextmenu', async () => {
+      if (!getGame().user?.isGM) {
+        return;
+      }
+
       const config = new GmScreenSettings({});
       await config.render({ force: true });
     });
@@ -1015,9 +1058,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const condensedButton = getGame().settings.get(MODULE_ID, MySettings.condensedButton);
 
     const grids = this.getHydratedGrids();
-    this.tabGroups.primary = this.data.activeGridId || 'default';
+
+    const currentIndex = Object.keys(grids).indexOf(this.data.activeGridId);
+    this.tabGroups[TAB_GROUP_NAME] = currentIndex !== -1 ? this.data.activeGridId : Object.keys(grids)[0];
     Object.keys(grids).forEach((gridId) => {
-      grids[gridId].grid.cssClass = this.tabGroups.primary === grids[gridId].grid.id ? 'active' : '';
+      grids[gridId].grid.cssClass = this.tabGroups[TAB_GROUP_NAME] === grids[gridId].grid.id ? 'active' : '';
     });
 
     const newAppData = foundry.utils.mergeObject(options, {
@@ -1039,7 +1084,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
     newAppData.tabs = Object.keys(grids).map((id) => ({
       id: grids[id].grid.id,
-      group: 'gmScreen-primary',
+      group: TAB_GROUP_NAME,
       label: grids[id].grid.name,
       cssClass: grids[id].grid.cssClass,
     }));

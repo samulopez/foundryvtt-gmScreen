@@ -26,4 +26,5 @@ export interface GmScreenGridEntry {
 export interface GmScreenApi {
   toggleGmScreenVisibility(isOpen?: boolean): void;
   refreshGmScreen(): void;
+  switchTab(): Promise<void>;
 }

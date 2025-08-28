@@ -52,6 +52,12 @@ function refreshGmScreen() {
   }
 }
 
+async function switchTab() {
+  if (gmScreenInstance) {
+    await gmScreenInstance.switchTab();
+  }
+}
+
 /*
  * https://stackoverflow.com/questions/53398408/switch-case-with-default-in-handlebars-js
  * {{#switch 'a'}}
@@ -110,6 +116,7 @@ Hooks.once('ready', async () => {
     gmScreenModuleData.api = {
       toggleGmScreenVisibility: toggleGmScreenOpen,
       refreshGmScreen,
+      switchTab,
     } as GmScreenApi;
   }
 
