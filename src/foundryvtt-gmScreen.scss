@@ -89,13 +89,14 @@ $transition-timing: 400ms;
     button {
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
-      border: 0;
       padding-left: 1em;
       padding-right: 1em;
       pointer-events: all;
       white-space: nowrap;
       width: auto;
-      color: var(--color-text-dark-primary);
+      background: var(--sidebar-background, var(--color-cool-5-90));
+      border: 1px solid var(--button-border-color);
+      color: var(--button-text-color);
 
       &:focus {
         box-shadow: none;
@@ -356,6 +357,11 @@ $transition-timing: 400ms;
     .gm-screen-tabs {
       display: flex;
       gap: variables.$space * 0.5;
+
+      > button {
+        background: var(--sidebar-background, var(--color-cool-5-90));
+        color: var(--button-text-color);
+      }
     }
 
     > button {

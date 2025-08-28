@@ -1034,6 +1034,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       expanded: this.expanded,
       hidden: !this.hasUserViewableGrids,
       displayDrawer: this.displayDrawer,
+      darkTheme: getGame().settings.get('core', 'uiConfig')?.colorScheme?.interface === 'dark',
     });
 
     newAppData.tabs = Object.keys(grids).map((id) => ({

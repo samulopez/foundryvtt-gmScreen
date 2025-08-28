@@ -1,6 +1,6 @@
 <div
   id="{{id}}"
-  class="gm-screen-app {{#if expanded}}expanded{{/if}} {{#if hidden}}hidden{{/if}} {{classes}} {{#if displayDrawer}}window-app gm-screen-drawer{{/if}}"
+  class="gm-screen-app themed {{#if darkTheme}}theme-dark{{else}}theme-light{{/if}} {{#if expanded}}expanded{{/if}} {{#if hidden}}hidden{{/if}} {{classes}} {{#if displayDrawer}}window-app gm-screen-drawer{{/if}}"
   {{#if displayDrawer}} style="
    opacity: {{drawerOpacity}};
    --gm-screen-width: {{drawerWidth}};
