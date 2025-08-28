@@ -88,6 +88,10 @@
     "entitySheet": {
       "Label": "Hoja de pantalla de GM",
       "Hint": "Configura para este objeto la hoja usada específicamente en GM Screen"
+    },
+    "keybindings": {
+      "openCloseScreen": "Abre/Cierra la pantalla del GM",
+      "changeTab": "Cambia la pestaña de la pantalla del GM"
     }
   }
 }

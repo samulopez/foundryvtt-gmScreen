@@ -1,5 +1,5 @@
 import { getGame, getLocalization, log } from '../helpers';
-import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from '../constants';
+import { MODULE_ABBREV, MODULE_ID, MyKeybindings, MySettings, TEMPLATES } from '../constants';
 import { GmScreenConfig } from '../../gridTypes';
 
 const defaultGmScreenConfig: GmScreenConfig = {
@@ -138,6 +138,36 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
           getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, defaultGmScreenConfig);
         }
       },
+    });
+
+    getGame().keybindings?.register(MODULE_ID, MyKeybindings.openCloseScreen, {
+      name: getLocalization().localize(`${MODULE_ABBREV}.keybindings.openCloseScreen`),
+      editable: [
+        {
+          key: 'KeyO',
+        },
+      ],
+      onDown: () => {
+        getGame().modules.get(MODULE_ID)?.api?.toggleGmScreenVisibility();
+      },
+      onUp: () => {},
+      restricted: false,
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
+    });
+
+    getGame().keybindings?.register(MODULE_ID, MyKeybindings.changeTab, {
+      name: getLocalization().localize(`${MODULE_ABBREV}.keybindings.changeTab`),
+      editable: [
+        {
+          key: 'KeyP',
+        },
+      ],
+      onDown: () => {
+        getGame().modules.get(MODULE_ID)?.api?.switchTab();
+      },
+      onUp: () => {},
+      restricted: false,
+      precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
     });
   }
 
