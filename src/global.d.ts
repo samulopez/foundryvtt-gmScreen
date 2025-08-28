@@ -24,6 +24,11 @@ declare global {
     'gm-screen.reset': boolean;
     'gm-screen.right-margin': number;
     'gm-screen.rows': number;
+    'core.uiConfig': {
+      colorScheme: {
+        interface: 'light' | 'dark';
+      };
+    };
   }
 }
 
