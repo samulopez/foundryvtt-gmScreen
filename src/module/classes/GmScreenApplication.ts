@@ -1,4 +1,5 @@
 import {
+  emptyClose,
   getGame,
   getGridElementsPosition,
   getLocalization,
@@ -45,6 +46,10 @@ type GmScreenApp =
 type ActorV2Constructor = new (
   options: Partial<foundry.applications.sheets.ActorSheetV2.Configuration>
 ) => foundry.applications.sheets.ActorSheetV2 & CustomOptions;
+
+type JournalEntryPageProseMirrorSheetConstructor = new (
+  options: Partial<foundry.applications.sheets.journal.JournalEntryPageProseMirrorSheet.Configuration>
+) => foundry.applications.sheets.journal.JournalEntryPageProseMirrorSheet & CustomOptions;
 
 type ItemV2Constructor = new (
   options: Partial<foundry.applications.sheets.ItemSheetV2>
@@ -831,6 +836,51 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         });
         break;
 
+      // special case when the sheet is a journal text page. We need to use the SheetClass to resolve UUID links
+      case sheet instanceof foundry.applications.sheets.journal.JournalEntryPageProseMirrorSheet &&
+        relevantDocument instanceof JournalEntryPage &&
+        sheet.options.document.type === 'text':
+        log(false, `creating compact JournalEntryPage for "${relevantDocument.name}"`, {
+          cellId,
+        });
+
+        // eslint-disable-next-line no-case-declarations
+        const TextDocumentSheet: foundry.applications.sheets.journal.JournalEntryPageProseMirrorSheet & CustomOptions =
+          new (SheetClass as JournalEntryPageProseMirrorSheetConstructor)({
+            ...sheet.options,
+            mode: 'view',
+            id: `gmscreen-text-${sheet.document.id}`,
+            // needed to show the journal page with styles
+            classes: ['application', 'sheet', 'journal-sheet', 'journal-entry', 'maximizing'],
+            document: relevantDocument,
+            window: {
+              ...sheet.options.window,
+              frame: false,
+              positioned: false,
+              resizable: false,
+            },
+          });
+
+        TextDocumentSheet._postRender = async function internalPostRender() {
+          this.cellId = cellId;
+
+          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+
+          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+          gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
+          gridCellContent.html(this.form);
+          gridCellContent
+            .children()
+            // needed to show the journal page with styles
+            .wrapInner("<section class='journal-entry-content journal-entry-page overflow-y'></section>");
+          gridCellContent.find('.window-header').remove();
+        };
+
+        TextDocumentSheet.close = emptyClose;
+
+        this.apps[cellId] = TextDocumentSheet;
+        break;
+
       case relevantDocument instanceof JournalEntryPage:
         log(false, `creating compact JournalEntryPage for "${relevantDocument.name}"`, {
           cellId,
@@ -868,10 +918,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           });
 
         ActorDocumentSheet._postRender = postRenderV2(cellId);
-        // prevent closing if esc is pressed
-        ActorDocumentSheet.close = async function close() {
-          return this;
-        };
+        ActorDocumentSheet.close = emptyClose;
 
         this.apps[cellId] = ActorDocumentSheet;
         break;
@@ -896,10 +943,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           });
 
         ItemDocumentSheet._postRender = postRenderV2(cellId);
-        // prevent closing if esc is pressed
-        ItemDocumentSheet.close = async function close() {
-          return this;
-        };
+        ItemDocumentSheet.close = emptyClose;
 
         this.apps[cellId] = ItemDocumentSheet;
         break;

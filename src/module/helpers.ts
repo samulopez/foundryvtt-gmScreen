@@ -210,3 +210,8 @@ export function postRenderV2(cellId: string) {
     gridCellContent.find('.window-header').css('visibility', 'hidden');
   };
 }
+
+// prevent closing if esc is pressed
+export function emptyClose() {
+  return this;
+}
