@@ -9,6 +9,8 @@
       "Open": "GMスクリーン",
       "OpenPlayer": "PLスクリーン",
       "OpenFull": "シート全体を開く",
+      "ShowNPCStatBlock": "ステータスブロックシートを表示",
+      "ShowNPCNormal": "NPCシートを表示",
       "Refresh": "更新",
       "Reset": "スクリーンをリセット"
     },

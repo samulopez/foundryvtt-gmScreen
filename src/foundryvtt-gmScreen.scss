@@ -252,6 +252,15 @@ $transition-timing: 400ms;
       width: calc(100% - 35px);
     }
 
+    > .dnd5e2-journal {
+      .statblock {
+        max-width: unset;
+      }
+      figure {
+        margin: 0;
+      }
+    }
+
     > .window-content {
       overflow-y: auto;
     }

@@ -13,6 +13,8 @@
       "Open": "Pantalla del GM",
       "OpenPlayer": "Pantalla del Jugador",
       "OpenFull": "Abrir la ficha completa de la entidad",
+      "ShowNPCStatBlock": "Mostrar ficha de estadísticas",
+      "ShowNPCNormal": "Mostrar ficha normal",
       "Refresh": "Actualizar",
       "Reset": "Borrar rejilla"
     },
