@@ -18,7 +18,7 @@ export class CompactJournalEntryPageDisplay extends foundry.applications.sheets.
       return;
     }
 
-    $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+    $(this.cellId).find('.gm-screen-grid-cell-title').text(this.options.document.name);
 
     const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
 

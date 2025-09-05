@@ -891,7 +891,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         TextDocumentSheet._postRender = async function internalPostRender() {
           this.cellId = cellId;
 
-          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.options.document.name);
 
           const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
           gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
