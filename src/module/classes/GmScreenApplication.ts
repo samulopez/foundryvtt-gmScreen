@@ -23,6 +23,7 @@ enum ClickAction {
   clearCell = 'clearCell',
   configureCell = 'configureCell',
   open = 'open',
+  statBlock = 'statBlock',
   toggleGmScreen = 'toggle-gm-screen',
   tab = 'tab',
 }
@@ -248,6 +249,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     if (shouldKeepCellLayout) {
       delete clearedCell.entityUuid;
       delete clearedCell.type;
+      delete clearedCell.isDndNpc;
+      delete clearedCell.isDndNpcStatBlock;
       newEntries[entryId] = clearedCell;
     } else {
       delete newEntries[entryId];
@@ -532,6 +535,22 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         }
         break;
       }
+      case ClickAction.statBlock: {
+        if (!gridCellId) {
+          return;
+        }
+        const newEntries = {
+          ...this.activeGrid.entries,
+        };
+        newEntries[entryId].isDndNpcStatBlock = !newEntries[entryId].isDndNpcStatBlock;
+        const newGridData: GmScreenGrid = {
+          ...this.activeGrid,
+          entries: newEntries,
+        };
+
+        await this.setGridData(newGridData);
+        break;
+      }
       default:
     }
   }
@@ -773,7 +792,12 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
    * @param gridCellContentElement - the element to inject into
    * @returns
    */
-  async getCellApplicationClass(entityUuid: string, cellId: string): Promise<GmScreenApp | undefined> {
+  async getCellApplicationClass(
+    entityUuid: string,
+    cellId: string,
+    dndNpc: boolean,
+    dndNpcStatBlock: boolean
+  ): Promise<GmScreenApp | undefined> {
     const relevantDocument = await this.getRelevantGmScreenDocument(entityUuid);
 
     if (!relevantDocument) {
@@ -802,12 +826,15 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
     /* If the currently cached sheet class does match the sheet class, return it */
     if (this.apps[cellId] && this.apps[cellId].constructor.name === SheetClass?.name) {
-      log(false, `using cached application instance for "${relevantDocument.name}"`, {
-        entityUuid,
-        app: this.apps[cellId],
-      });
+      // when dealing with DnD5e NPC stat blocks, we need to make sure we re-create the sheet if the user toggled the stat block option
+      if (!dndNpc || this.apps[cellId].id.includes(dndNpcStatBlock ? 'gmscreen-npc-' : 'gmscreen-actor-')) {
+        log(false, `using cached application instance for "${relevantDocument.name}"`, {
+          entityUuid,
+          app: this.apps[cellId],
+        });
 
-      return this.apps[cellId];
+        return this.apps[cellId];
+      }
     }
 
     log(false, 'relevantEntity sheet', {
@@ -906,7 +933,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         const ActorDocumentSheet: foundry.applications.sheets.ActorSheetV2 & CustomOptions =
           new (SheetClass as ActorV2Constructor)({
             ...sheet.options,
-            id: `gmscreen-actor-${sheet.document.id}`,
+            id: dndNpcStatBlock ? `gmscreen-npc-${sheet.document.id}` : `gmscreen-actor-${sheet.document.id}`,
             classes: [],
             document: relevantDocument,
             window: {
@@ -917,7 +944,35 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             },
           });
 
-        ActorDocumentSheet._postRender = postRenderV2(cellId);
+        ActorDocumentSheet._postRender = async function postRender() {
+          this.cellId = cellId;
+
+          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+
+          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+          gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
+
+          gridCellContent.html(this.form);
+          if (!dndNpcStatBlock) {
+            gridCellContent.find('.window-header').css('visibility', 'hidden');
+            return;
+          }
+
+          gridCellContent.addClass('dnd5e2');
+          gridCellContent.html(
+            (await relevantDocument.toEmbed({
+              label: '',
+              values: ['statblock'],
+              inline: false,
+              cite: true,
+              caption: false,
+              captionPosition: 'bottom',
+            })) || this.form
+          );
+          gridCellContent
+            .children()
+            .wrap("<div class='dnd5e2-journal journal-entry-content journal-page-content'></div>");
+        };
         ActorDocumentSheet.close = emptyClose;
 
         this.apps[cellId] = ActorDocumentSheet;
@@ -1017,11 +1072,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             return;
           }
           const cellId = `#${gridEntry.id}`;
-          const { entryId } = gridEntry.dataset;
+          const { entryId, dndNpc, dndNpcStatBlock } = gridEntry.dataset;
 
           log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry });
 
-          this.getCellApplicationClass(relevantUuid, cellId)
+          this.getCellApplicationClass(relevantUuid, cellId, dndNpc === 'true', dndNpcStatBlock === 'true')
             .then(async (application) => {
               log(false, `got application for "${cellId}"`, {
                 application,
@@ -1172,11 +1227,18 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const gridElementPosition = getGridElementsPosition($(event.target).closest('.gm-screen-grid-cell'));
     const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
 
+    const relevantDocument = await this.getRelevantGmScreenDocument(entityUuid);
+
     const newEntry: GmScreenGridEntry = {
       ...gridElementPosition,
       entryId: newEntryId,
       entityUuid,
       type: data.type,
+      isDndNpc:
+        relevantDocument instanceof Actor &&
+        typeof dnd5e !== 'undefined' &&
+        relevantDocument.sheet instanceof dnd5e.applications.actor.NPCActorSheet,
+      isDndNpcStatBlock: false,
     };
 
     this.addEntryToActiveGrid(newEntry);

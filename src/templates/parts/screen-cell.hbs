@@ -1,6 +1,9 @@
-<div class="gm-screen-grid-cell" id="gm-screen-{{gridId}}-cell-{{@index}}" {{#if
-  this.entityUuid}}data-entity-uuid="{{this.entityUuid}}" {{/if}} {{#if this.entryId}}data-entry-id="{{this.entryId}}"
-  {{/if}} style="
+<div class="gm-screen-grid-cell" id="gm-screen-{{gridId}}-cell-{{@index}}" 
+  {{#if this.entityUuid}}data-entity-uuid="{{this.entityUuid}}" {{/if}}
+  {{#if this.isDndNpc}}data-dnd-npc="true" {{/if}}
+  {{#if this.isDndNpcStatBlock}}data-dnd-npc-stat-block="true" {{/if}}
+  {{#if this.entryId}}data-entry-id="{{this.entryId}}" {{/if}} 
+  style="
     {{#if this.x}}grid-column: {{this.x}};{{/if}}
     {{#if this.y}}grid-row:{{this.y}};{{/if}}
     {{#if this.spanRows}}grid-row-end: span {{this.spanRows}};{{/if}}
@@ -25,6 +28,9 @@
     </h5>
 
     {{#if this.entityUuid}}
+    {{#if this.isDndNpc}}
+    <a type="checkbox" title="{{#if this.isDndNpcStatBlock}}{{localize 'GMSCR.gmScreen.ShowNPCNormal'}}{{else}}{{localize 'GMSCR.gmScreen.ShowNPCStatBlock'}}{{/if}}" data-action="statBlock">{{#if this.isDndNpcStatBlock}}<i class="fas fa-shield"></i>{{else}}<i class="fas fa-shield-halved"></i>{{/if}}</a>
+    {{/if}}
     <a data-action="open" title="{{localize 'GMSCR.gmScreen.OpenFull'}}">
       {{#if this.type}}
 

@@ -34,6 +34,7 @@ Alternatively, you can manually install the module by following these steps:
 - Each cell has settings which allow for that cell to span multiple columns or rows.
 - Clicking the little icon on the top-right of the cell will pop out the full-sized sheet for whatever entity is in the cell. The GM Screen is intended to be read-only, so edits to things inside it will happen for the most part by popping the entity out.
 - Tabs can be reordered from the settings.
+- If you use DnD5e, you can show the stat block sheet of each NPC and Monster by clicking on the Shield top-right icon of the cell. <img src="readme-img/shield-halved-solid.svg" alt="shield halved solid icon" width="20" height="20"/>
 
 ## Screenshots
 

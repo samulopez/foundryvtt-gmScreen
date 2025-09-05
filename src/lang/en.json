@@ -9,6 +9,8 @@
       "Open": "GM Screen",
       "OpenPlayer": "Player Screen",
       "OpenFull": "Open the full Entity Sheet",
+      "ShowNPCStatBlock": "Show stat block sheet",
+      "ShowNPCNormal": "Show NPC sheet",
       "Refresh": "Refresh",
       "Reset": "Clear Grid"
     },

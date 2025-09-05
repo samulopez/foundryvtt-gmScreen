@@ -9,6 +9,8 @@
       "Open": "SL Schirm",
       "OpenPlayer": "Spieler Schirm",
       "OpenFull": "Öffne das vollständige Entitäts Blatt",
+      "ShowNPCStatBlock": "Zeige die Stat-Block-Ansicht",
+      "ShowNPCNormal": "Zeige die normale Ansicht",
       "Refresh": "Aktualisieren",
       "Reset": "Raster leeren"
     },

@@ -21,6 +21,8 @@ export interface GmScreenGridEntry {
   entityUuid?: string;
   type?: 'JournalEntry' | 'Actor' | 'Item' | 'RollTable';
   entryId: string;
+  isDndNpc?: boolean;
+  isDndNpcStatBlock?: boolean;
 }
 
 export interface GmScreenApi {
