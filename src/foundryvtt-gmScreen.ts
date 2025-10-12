@@ -77,10 +77,6 @@ Handlebars.registerHelper(`${MODULE_ABBREV}-case`, function helperCase(value, op
   return options.inverse(this);
 });
 
-Handlebars.registerHelper(`${MODULE_ABBREV}-enrich`, (str) =>
-  foundry.applications.ux.TextEditor.implementation.enrichHTML(str)
-);
-
 /* ------------------------------------ */
 /* Initialize module					*/
 /* ------------------------------------ */
