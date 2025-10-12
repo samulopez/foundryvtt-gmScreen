@@ -1,6 +1,6 @@
 import { GmScreenConfig, GmScreenGridEntry } from '../gridTypes';
 
-import { MODULE_ABBREV, MODULE_ID, numberRegex } from './constants';
+import { MODULE_ABBREV, MODULE_ID, RESIZABLE_DOCUMENTS, numberRegex } from './constants';
 
 interface LocalizationHelper {
   localize: (key: string) => string;
@@ -214,4 +214,8 @@ export function postRenderV2(cellId: string) {
 // prevent closing if esc is pressed
 export function emptyClose() {
   return this;
+}
+
+export function isActorOrItemResizable(documentName: string) {
+  return RESIZABLE_DOCUMENTS.includes(documentName);
 }
