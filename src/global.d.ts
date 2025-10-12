@@ -30,16 +30,6 @@ declare global {
       };
     };
   }
-
-  const dnd5e: undefined | Dnd5e;
-
-  interface Dnd5e {
-    applications: {
-      actor: {
-        NPCActorSheet: any;
-      };
-    };
-  }
 }
 
 declare module 'fvtt-types/configuration' {

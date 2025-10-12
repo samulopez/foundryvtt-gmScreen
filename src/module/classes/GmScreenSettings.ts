@@ -216,7 +216,8 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
   }
 
   async _prepareContext(options) {
-    const data = foundry.utils.mergeObject(options, {
+    const parentContext = await super._prepareContext(options);
+    const data = foundry.utils.mergeObject(parentContext, {
       settings: this.settingsData,
       defaultRows: this.rows,
       defaultColumns: this.columns,

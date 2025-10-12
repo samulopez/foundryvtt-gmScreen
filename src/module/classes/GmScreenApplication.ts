@@ -1237,8 +1237,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       type: data.type,
       isDndNpc:
         relevantDocument instanceof Actor &&
-        typeof dnd5e !== 'undefined' &&
-        relevantDocument.sheet instanceof dnd5e.applications.actor.NPCActorSheet,
+        getGame().system.id === 'dnd5e' &&
+        relevantDocument?.sheet?.constructor.name === 'NPCActorSheet',
       isDndNpcStatBlock: false,
     };
 
