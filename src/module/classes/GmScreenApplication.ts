@@ -5,6 +5,7 @@ import {
   getLocalization,
   getUserCellConfigurationInput,
   getUserViewableGrids,
+  isActorOrItemResizable,
   log,
   postRenderV2,
   updateCSSPropertyVariable,
@@ -940,7 +941,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
               ...sheet.options.window,
               frame: true,
               positioned: false,
-              resizable: false,
+              resizable: isActorOrItemResizable(relevantDocument.constructor.name),
             },
           });
 
@@ -1015,7 +1016,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             width: '100%',
             height: '100%',
             positioned: false,
-            resizable: false,
+            resizable: isActorOrItemResizable(relevantDocument.constructor.name),
           });
 
         CompactDocumentSheet.options.editable = false;

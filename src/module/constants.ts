@@ -35,3 +35,5 @@ export enum MyKeybindings {
 }
 
 export const numberRegex = /([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[eE]([+-]?\d+))?/;
+
+export const RESIZABLE_DOCUMENTS = ['DeltaGreenActor', 'DeltaGreenItem'];
