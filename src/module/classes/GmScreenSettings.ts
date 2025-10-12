@@ -18,6 +18,8 @@ const defaultGmScreenConfig: GmScreenConfig = {
 export class GmScreenSettings extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
+  draggedRow: HTMLElement | undefined;
+
   static init() {
     getGame().settings.registerMenu(MODULE_ID, 'menu', {
       name: `${MODULE_ABBREV}.settings.${MySettings.gmScreenConfig}.Name`,
@@ -227,36 +229,35 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
     return data;
   }
 
-  _dragListeners(html: JQuery) {
-    let draggedRow: HTMLElement | undefined;
+  _dragStartTab(event: DragEvent) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    this.draggedRow = event.target;
+  }
 
-    html.on('dragstart', (e) => {
-      draggedRow = e.target;
-    });
+  _dragOverTab(event: DragEvent) {
+    if (!this.draggedRow || !(event.target instanceof HTMLElement)) {
+      return;
+    }
 
-    html.on('dragover', (e) => {
-      if (!draggedRow) {
-        return;
-      }
+    const targetRow = $(event.target).parents('tbody tr')[0];
 
-      const targetRow = $(e.target).parents('tbody tr')[0];
+    if (!targetRow) {
+      return;
+    }
 
-      if (!targetRow) {
-        return;
-      }
+    const tableRows = Array.from($(event.target).parents('tbody').children());
 
-      const tableRows = Array.from($(e.target).parents('tbody').children());
+    if (tableRows.indexOf(targetRow) > tableRows.indexOf(this.draggedRow)) {
+      targetRow.after(this.draggedRow);
+    } else {
+      targetRow.before(this.draggedRow);
+    }
+  }
 
-      if (tableRows.indexOf(targetRow) > tableRows.indexOf(draggedRow)) {
-        targetRow.after(draggedRow);
-      } else {
-        targetRow.before(draggedRow);
-      }
-    });
-
-    html.on('dragend', () => {
-      draggedRow = undefined;
-    });
+  async _dragEndTab() {
+    this.draggedRow = undefined;
   }
 
   async _onRender() {
@@ -294,7 +295,19 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       currentTarget.parentsUntil('tbody').remove();
       this.setPosition({}); // recalc height
     };
-    this._dragListeners(html);
+
+    const dragDropTabs = new foundry.applications.ux.DragDrop({
+      dragSelector: 'tbody tr',
+      dropSelector: 'tbody tr',
+      permissions: { dragstart: () => !!getGame().user?.isGM, drop: () => !!getGame().user?.isGM },
+      callbacks: {
+        dragstart: this._dragStartTab.bind(this),
+        dragover: this._dragOverTab.bind(this),
+        dragend: this._dragEndTab.bind(this),
+      },
+    });
+    dragDropTabs.bind(this.element);
+
     html.on('click', (e) => {
       const currentTarget = $(e.target).closest('button')[0];
       if (!currentTarget) {

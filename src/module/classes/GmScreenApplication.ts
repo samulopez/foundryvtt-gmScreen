@@ -79,6 +79,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   // used to allow players to switch tabs
   currentTab: string;
 
+  draggedTab: HTMLElement | undefined;
+
   constructor(options = {}) {
     super(options);
     this.expanded = false;
@@ -322,51 +324,49 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     }
   }
 
-  _dragListeners(html: JQuery) {
-    let draggedTab: HTMLElement | undefined;
-    const tabElement = html.find('.gm-screen-tabs');
+  _dragStartTab(event: DragEvent) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    this.draggedTab = event.target;
+  }
 
-    tabElement.on('dragstart', '.item', (e) => {
-      draggedTab = e.target;
-    });
+  _dragOverTab(event: DragEvent) {
+    if (!this.draggedTab || !(event.target instanceof HTMLElement)) {
+      return;
+    }
 
-    tabElement.on('dragover', (e) => {
-      if (!draggedTab) {
-        return;
-      }
+    const children = Array.from($(event.target).closest('.gm-screen-tabs').children());
 
-      const children = Array.from($(e.target).closest('.gm-screen-tabs').children());
+    if (children.indexOf(event.target) > children.indexOf(this.draggedTab)) {
+      event.target.after(this.draggedTab);
+    } else {
+      event.target.before(this.draggedTab);
+    }
+  }
 
-      if (children.indexOf(e.target) > children.indexOf(draggedTab)) {
-        e.target.after(draggedTab);
-      } else {
-        e.target.before(draggedTab);
-      }
-    });
+  async _dragEndTab(event: DragEvent) {
+    if (!this.draggedTab || !(event.target instanceof HTMLElement)) {
+      return;
+    }
 
-    tabElement.on('dragend', async (e) => {
-      if (!draggedTab) {
-        return;
-      }
+    const newGmScreenConfig = foundry.utils.deepClone(this.data);
+    newGmScreenConfig.grids = {};
 
-      const newGmScreenConfig = foundry.utils.deepClone(this.data);
-      newGmScreenConfig.grids = {};
+    // rebuild gmScreenConfig based on the current layout of the tabs
+    $(event.target)
+      .closest('.gm-screen-tabs')
+      .children()
+      .each((index, item) => {
+        const gridId = $(item).attr('data-tab');
+        if (!gridId) {
+          return;
+        }
+        newGmScreenConfig.grids[gridId] = this.data.grids[gridId];
+      });
 
-      // rebuild gmScreenConfig based on the current layout of the tabs
-      $(e.target)
-        .closest('.gm-screen-tabs')
-        .children()
-        .each((index, item) => {
-          const gridId = $(item).attr('data-tab');
-          if (!gridId) {
-            return;
-          }
-          newGmScreenConfig.grids[gridId] = this.data.grids[gridId];
-        });
-
-      draggedTab = undefined;
-      await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
-    });
+    this.draggedTab = undefined;
+    await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
   }
 
   async handleClickEvent(e: JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>) {
@@ -695,6 +695,18 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     });
     dragDrop.bind(this.element);
 
+    const dragDropTabs = new foundry.applications.ux.DragDrop({
+      dragSelector: '.gm-screen-actions button',
+      dropSelector: '.gm-screen-actions button',
+      permissions: { dragstart: () => !!getGame().user?.isGM, drop: () => !!getGame().user?.isGM },
+      callbacks: {
+        dragstart: this._dragStartTab.bind(this),
+        dragover: this._dragOverTab.bind(this),
+        dragend: this._dragEndTab.bind(this),
+      },
+    });
+    dragDropTabs.bind(this.element);
+
     if (this.displayDrawer) {
       this.setPosition({
         left: NaN,
@@ -749,10 +761,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     super._attachFrameListeners();
 
     const html = $(this.element);
-
-    if (getGame().user?.isGM) {
-      this._dragListeners(html);
-    }
 
     $(html).on('click', '.gm-screen-actions button', this.handleClickEvent.bind(this));
     $(html).on('click', '.gm-screen-grid-cell-header a', this.handleClickEvent.bind(this));
