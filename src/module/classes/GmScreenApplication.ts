@@ -696,8 +696,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     dragDrop.bind(this.element);
 
     const dragDropTabs = new foundry.applications.ux.DragDrop({
-      dragSelector: '.gm-screen-actions button',
-      dropSelector: '.gm-screen-actions button',
+      dragSelector: '.gm-screen-tabs button',
+      dropSelector: '.gm-screen-tabs button',
       permissions: { dragstart: () => !!getGame().user?.isGM, drop: () => !!getGame().user?.isGM },
       callbacks: {
         dragstart: this._dragStartTab.bind(this),
