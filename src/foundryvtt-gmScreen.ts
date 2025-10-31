@@ -121,19 +121,18 @@ Hooks.once('ready', async () => {
   }
 });
 
-function addGmScreenButton(html) {
-  const jHTML = $(html);
-  const actionButtons = jHTML.find('.header-actions');
+function addGmScreenButton(html: HTMLElement) {
+  const actionButtons = html.querySelector('.header-actions');
 
   const gmScreenButtonHtml = `<button class="gm-screen-button">
           <i class="fas fa-book-reader"></i> ${getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Open`)}
       </button>`;
 
-  actionButtons.append(gmScreenButtonHtml);
+  actionButtons?.insertAdjacentHTML('afterend', gmScreenButtonHtml);
 
-  const gmScreenButton = jHTML.find('button.gm-screen-button');
+  const gmScreenButton = html.querySelector('button.gm-screen-button');
 
-  gmScreenButton.on('click', (event) => {
+  gmScreenButton?.addEventListener('click', (event) => {
     event.preventDefault();
     toggleGmScreenOpen(true);
   });

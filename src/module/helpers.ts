@@ -90,10 +90,10 @@ export function getUserCellConfigurationInput(
           label: getLocalization().localize('Submit'),
           default: true,
           callback: (_event, button, dialog) => {
-            const html = $(dialog.element);
+            const html = dialog.element;
             const formValues = {
-              newSpanRows: Number(html.find('[name="spanRows"]').val()),
-              newSpanCols: Number(html.find('[name="spanCols"]').val()),
+              newSpanRows: Number(html.querySelector('[name="spanRows"]')?.value),
+              newSpanCols: Number(html.querySelector('[name="spanCols"]')?.value),
             };
 
             log(false, 'dialog formValues', formValues);
@@ -106,9 +106,11 @@ export function getUserCellConfigurationInput(
   });
 }
 
-export function getGridElementsPosition(element: JQuery) {
-  // const vanillaGridElement = document.querySelector('.gm-screen-grid');
-  const relevantGridElement = element.parents('.gm-screen-grid')[0];
+export function getGridElementsPosition(element: HTMLElement) {
+  const relevantGridElement = element.parentElement?.closest('.gm-screen-grid');
+  if (!relevantGridElement) {
+    return { x: 1, y: 1 };
+  }
 
   const vanillaGridElementStyles = window.getComputedStyle(relevantGridElement);
 
@@ -134,7 +136,7 @@ export function getGridElementsPosition(element: JQuery) {
   const rowHeight = Number(rows[0].match(numberRegex)[0]);
 
   // to figure out which column/row this element is in within the gridElement, we have to do math
-  const elementBounds = element[0].getBoundingClientRect();
+  const elementBounds = element.getBoundingClientRect();
   const gridBounds = relevantGridElement.getBoundingClientRect();
 
   const elementColumn = Math.floor((elementBounds.left - (gridBounds.left - gap)) / (colWidth + gap)) + 1;
@@ -180,19 +182,17 @@ export function getUserViewableGrids(gmScreenConfig: GmScreenConfig) {
  * Creates a custom CSS property with the name provide on the element.style of all elements which match
  * the selector provided containing the computed value of the property specified.
  *
- * @param {JQuery<HTMLElement>} html - Some HTML element to search within for the selector
- * @param {string} selector - A CSS style selector which will be used to locate the target elements for this function.
- * @param {keyof CSSStyleDeclaration} property - The name of a CSS property to obtain the computed value of
- * @param {string} name - The name of the CSS variable (custom property) that will be created/updated.
- * @memberof GmScreenApplication
  */
 export function updateCSSPropertyVariable(
-  html: JQuery,
+  html: HTMLElement,
   selector: string,
   property: keyof CSSStyleDeclaration,
   name: string
 ) {
-  html.find(selector).each((i, gridCell) => {
+  html.querySelectorAll(selector).forEach((gridCell) => {
+    if (!(gridCell instanceof HTMLElement)) {
+      return;
+    }
     const value = window.getComputedStyle(gridCell)[property];
     gridCell.style.setProperty(name, String(value));
   });
@@ -202,12 +202,31 @@ export function postRenderV2(cellId: string) {
   return async function internalPostRenderV2() {
     this.cellId = cellId;
 
-    $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+    const cell = document.getElementById(this.cellId.replace('#', ''));
 
-    const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-    gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
-    gridCellContent.html(this.form);
-    gridCellContent.find('.window-header').css('visibility', 'hidden');
+    if (!cell) {
+      return;
+    }
+
+    const title = cell.querySelector('.gm-screen-grid-cell-title');
+
+    if (title) {
+      title.textContent = this.title;
+    }
+
+    const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+    if (!gridCellContent) {
+      return;
+    }
+
+    gridCellContent.classList.remove(...Array.from(gridCellContent.classList));
+    gridCellContent.classList.add('gm-screen-grid-cell-content');
+
+    gridCellContent.replaceChildren(this.form);
+    const header = gridCellContent.querySelector('.window-header');
+    if (header instanceof HTMLElement) {
+      header.style.visibility = 'hidden';
+    }
   };
 }
 

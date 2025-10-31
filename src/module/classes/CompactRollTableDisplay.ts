@@ -22,11 +22,23 @@ export class CompactRollTableDisplay extends foundry.applications.sheets.RollTab
       return;
     }
 
-    $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+    const cell = document.getElementById(this.cellId.replace('#', ''));
+    if (!cell) {
+      return;
+    }
+    const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
+    if (titleElement) {
+      titleElement.textContent = this.title;
+    }
 
-    const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-    gridCellContent.html(this.form);
-    gridCellContent.find('.window-header').remove();
+    const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+    if (gridCellContent) {
+      gridCellContent.replaceChildren(this.form);
+      const windowHeader = gridCellContent.querySelector('.window-header');
+      if (windowHeader) {
+        windowHeader.remove();
+      }
+    }
     this.setPosition({
       width: 'auto',
       height: 'auto',

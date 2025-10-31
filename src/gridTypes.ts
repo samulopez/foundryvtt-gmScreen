@@ -19,7 +19,7 @@ export interface GmScreenGridEntry {
   spanRows?: number;
   spanCols?: number;
   entityUuid?: string;
-  type?: 'JournalEntry' | 'Actor' | 'Item' | 'RollTable';
+  type?: 'JournalEntry' | 'JournalEntryPage' | 'RollTable' | 'Item' | 'Actor';
   entryId: string;
   isDndNpc?: boolean;
   isDndNpcStatBlock?: boolean;

@@ -241,15 +241,29 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       return;
     }
 
-    const targetRow = $(event.target).parents('tbody tr')[0];
-
-    if (!targetRow) {
+    const targetRow = event.target.parentElement?.hasAttribute('draggable')
+      ? event.target.parentElement
+      : event.target.parentElement?.parentElement;
+    if (!(targetRow instanceof HTMLElement) || !targetRow.hasAttribute('draggable')) {
       return;
     }
 
-    const tableRows = Array.from($(event.target).parents('tbody').children());
+    const tableRows = targetRow.parentElement?.children;
+    if (!tableRows) {
+      return;
+    }
+    let targetRowIndex = -1;
+    let draggedRowIndex = -1;
+    for (let i = 0; i < (tableRows?.length ?? 0); i += 1) {
+      if (tableRows?.item(i) === targetRow) {
+        targetRowIndex = i;
+      }
+      if (tableRows?.item(i) === this.draggedRow) {
+        draggedRowIndex = i;
+      }
+    }
 
-    if (tableRows.indexOf(targetRow) > tableRows.indexOf(this.draggedRow)) {
+    if (targetRowIndex > draggedRowIndex) {
       targetRow.after(this.draggedRow);
     } else {
       targetRow.before(this.draggedRow);
@@ -260,41 +274,68 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
     this.draggedRow = undefined;
   }
 
+  async handleNewRowClick(currentTarget: HTMLButtonElement) {
+    const html = this.element;
+    log(false, 'add row clicked', {
+      data: currentTarget.dataset,
+    });
+    const { table } = currentTarget.dataset;
+    const tbodyElement = html.querySelector('tbody');
+    if (!tbodyElement || !table) {
+      return;
+    }
+    const newGridRowTemplateData = {
+      gridId: foundry.utils.randomID(),
+      grid: {
+        name: '',
+        columnOverride: '',
+        rowOverride: '',
+      },
+      defaultColumns: this.columns,
+      defaultRows: this.rows,
+    };
+    const newRow = await foundry.applications.handlebars.renderTemplate(
+      TEMPLATES[table].tableRow,
+      newGridRowTemplateData
+    );
+    // render a new row at the end of tbody
+    tbodyElement.insertAdjacentHTML('beforeend', newRow);
+    this.setPosition({}); // recalc height
+  }
+
+  handleDeleteRowClick(currentTarget: HTMLButtonElement) {
+    log(false, 'delete row clicked', {
+      currentTarget,
+    });
+    currentTarget.closest('tr')?.remove();
+    this.setPosition({}); // recalc height
+  }
+
+  addEventListeners() {
+    const html = this.element;
+    html.addEventListener('click', (e) => {
+      if (e == null || !(e.target instanceof HTMLElement)) {
+        return;
+      }
+      const currentTarget = e.target.closest('button');
+      if (!currentTarget) {
+        return;
+      }
+      log(false, 'a button was clicked', { e, currentTarget });
+      if (currentTarget.classList.contains('add-row')) {
+        this.handleNewRowClick(currentTarget);
+      }
+      if (currentTarget.classList.contains('delete-row')) {
+        this.handleDeleteRowClick(currentTarget);
+      }
+    });
+  }
+
   async _onRender() {
-    const html = $(this.element);
+    const html = this.element;
     log(false, 'activateListeners', {
       html,
     });
-    const handleNewRowClick = async (currentTarget: JQuery) => {
-      log(false, 'add row clicked', {
-        data: currentTarget.data(),
-      });
-      const { table } = currentTarget.data();
-      const tbodyElement = $(html).find('tbody');
-      const newGridRowTemplateData = {
-        gridId: foundry.utils.randomID(),
-        grid: {
-          name: '',
-          columnOverride: '',
-          rowOverride: '',
-        },
-        defaultColumns: this.columns,
-        defaultRows: this.rows,
-      };
-      const newRow = $(
-        await foundry.applications.handlebars.renderTemplate(TEMPLATES[table].tableRow, newGridRowTemplateData)
-      );
-      // render a new row at the end of tbody
-      tbodyElement.append(newRow);
-      this.setPosition({}); // recalc height
-    };
-    const handleDeleteRowClick = (currentTarget: JQuery) => {
-      log(false, 'delete row clicked', {
-        currentTarget,
-      });
-      currentTarget.parentsUntil('tbody').remove();
-      this.setPosition({}); // recalc height
-    };
 
     const dragDropTabs = new foundry.applications.ux.DragDrop({
       dragSelector: 'tbody tr',
@@ -307,21 +348,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       },
     });
     dragDropTabs.bind(this.element);
-
-    html.on('click', (e) => {
-      const currentTarget = $(e.target).closest('button')[0];
-      if (!currentTarget) {
-        return;
-      }
-      const wrappedCurrentTarget = $(currentTarget);
-      log(false, 'a button was clicked', { e, currentTarget });
-      if (wrappedCurrentTarget.hasClass('add-row')) {
-        handleNewRowClick(wrappedCurrentTarget);
-      }
-      if (wrappedCurrentTarget.hasClass('delete-row')) {
-        handleDeleteRowClick(wrappedCurrentTarget);
-      }
-    });
+    this.addEventListeners();
   }
 
   // grids: {
