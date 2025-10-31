@@ -192,7 +192,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
   /**
    * Helper function to update the gmScreenConfig setting with a new grid's worth of data
-   * @param {GmScreenGrid} newGridData - the complete grid object to set
    */
   async setGridData(newGridData: GmScreenGrid) {
     const newGmScreenConfig = foundry.utils.deepClone(this.data);
@@ -212,7 +211,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   /**
    * Adds an Entry to the proper place on the active grid's data.
    * Replaces an existing entry if the entryId matches
-   * @param {GmScreenGridEntry} newEntry The Entry being added.
    */
   async addEntryToActiveGrid(newEntry: GmScreenGridEntry) {
     const newEntries = { ...this.activeGrid.entries };
@@ -239,7 +237,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
   /**
    * Remove a given entry from the Active Grid
-   * @param {string} entryId - entry to remove from the active grid's entries
    */
   async removeEntryFromActiveGrid(entryId: string, gridCellId?: string) {
     const clearedCell = foundry.utils.deepClone(this.activeGrid.entries[entryId]);
@@ -290,17 +287,16 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
   /**
    * Set the GM Screen Visibility. By default will toggle the current state.
-   * @param {boolean} expanded
    */
   toggleGmScreenVisibility(expanded = !this.expanded) {
     this.expanded = expanded;
 
     if (this.expanded) {
       this.bringToFront();
-      $('.gm-screen-app').addClass('expanded');
-      $('.gm-screen-app').css('z-index', this.position.zIndex);
+      this.element.classList.add('expanded');
+      this.element.style.setProperty('z-index', this.position.zIndex.toString());
     } else {
-      $('.gm-screen-app').removeClass('expanded');
+      this.element.classList.remove('expanded');
     }
   }
 
@@ -336,9 +332,26 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       return;
     }
 
-    const children = Array.from($(event.target).closest('.gm-screen-tabs').children());
+    const children = event.target.closest('.gm-screen-tabs')?.children;
+    if (!children) {
+      return;
+    }
 
-    if (children.indexOf(event.target) > children.indexOf(this.draggedTab)) {
+    let targetRowIndex = -1;
+    let draggedRowIndex = -1;
+    Array.from(children).forEach((child, index) => {
+      if (!(child instanceof HTMLElement)) {
+        return;
+      }
+      if (children?.item(index) === event.target) {
+        targetRowIndex = index;
+      }
+      if (children?.item(index) === this.draggedTab) {
+        draggedRowIndex = index;
+      }
+    });
+
+    if (targetRowIndex > draggedRowIndex) {
       event.target.after(this.draggedTab);
     } else {
       event.target.before(this.draggedTab);
@@ -353,29 +366,35 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const newGmScreenConfig = foundry.utils.deepClone(this.data);
     newGmScreenConfig.grids = {};
 
-    // rebuild gmScreenConfig based on the current layout of the tabs
-    $(event.target)
-      .closest('.gm-screen-tabs')
-      .children()
-      .each((index, item) => {
-        const gridId = $(item).attr('data-tab');
-        if (!gridId) {
-          return;
-        }
-        newGmScreenConfig.grids[gridId] = this.data.grids[gridId];
-      });
+    Array.from(event.target.closest('.gm-screen-tabs')?.children || []).forEach((item) => {
+      if (!(item instanceof HTMLElement)) {
+        return;
+      }
+
+      const gridId = item.dataset.tab;
+      if (!gridId) {
+        return;
+      }
+      newGmScreenConfig.grids[gridId] = this.data.grids[gridId];
+    });
 
     this.draggedTab = undefined;
     await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
   }
 
-  async handleClickEvent(e: JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>) {
+  async handleClickEvent(e: MouseEvent) {
     e.preventDefault();
 
+    if (!(e.currentTarget instanceof HTMLElement)) {
+      return;
+    }
+
     const action = e.currentTarget.dataset.action as ClickAction;
-    const entityUuid = $(e.currentTarget).parents('[data-entity-uuid]')?.data()?.entityUuid;
-    const entryId = $(e.currentTarget).parents('[data-entry-id]')?.data()?.entryId;
-    const gridCellId = $(e.currentTarget).parents('[data-entry-id]')?.attr('id');
+    const entityUuidHtml = e.currentTarget.closest('[data-entity-uuid]');
+    const entityUuid = entityUuidHtml instanceof HTMLElement ? entityUuidHtml.dataset.entityUuid : undefined;
+    const entryIdHtml = e.currentTarget.closest('[data-entry-id]');
+    const entryId = entryIdHtml instanceof HTMLElement ? entryIdHtml.dataset.entryId : undefined;
+    const gridCellId = entryIdHtml instanceof HTMLElement ? entryIdHtml.id : undefined;
 
     log(false, 'handleClickEvent', {
       e,
@@ -397,7 +416,13 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       }
       case ClickAction.configureCell: {
         try {
-          const { x, y } = getGridElementsPosition($(e.target).parent());
+          if (!(e.target instanceof HTMLElement) || !(e.target.parentElement instanceof HTMLElement)) {
+            return;
+          }
+          if (!entryId) {
+            return;
+          }
+          const { x, y } = getGridElementsPosition(e.target.parentElement);
 
           const cellToConfigure: GmScreenGridEntry = this.activeGrid.entries[entryId] || {
             x,
@@ -540,6 +565,9 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         if (!gridCellId) {
           return;
         }
+        if (!entryId) {
+          return;
+        }
         const newEntries = {
           ...this.activeGrid.entries,
         };
@@ -588,25 +616,39 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   }
 
   updateClassesAndFixButtons() {
-    const html = $('#gm-screen-app');
-    if (!this.displayDrawer) {
-      html.addClass('application');
-      html.find('.window-content').prepend(html.find('.window-header'));
+    if (this.displayDrawer) {
+      return;
     }
+
+    const gmScreenApp = document.getElementById('gm-screen-app');
+    if (!gmScreenApp) {
+      return;
+    }
+    gmScreenApp?.classList.add('application');
+    const header = gmScreenApp?.querySelector('.window-header');
+    if (!header) {
+      return;
+    }
+    gmScreenApp?.querySelector('.window-content')?.prepend(header);
   }
 
   async _renderFrame(options) {
     if (!this.displayDrawer) {
       return super._renderFrame(options);
     }
-    const template = $(
-      await foundry.applications.handlebars.renderTemplate(TEMPLATES.screen, await this._prepareContext(this.options))
-    ).get(0);
-    if (!template) {
+
+    const templateString = await foundry.applications.handlebars.renderTemplate(
+      TEMPLATES.screen,
+      await this._prepareContext(this.options)
+    );
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = templateString;
+
+    if (!(wrapper.children[0] instanceof HTMLElement)) {
       throw new Error('Failed to render GmScreenApplication frame template');
     }
 
-    return template;
+    return wrapper.children[0];
   }
 
   /**
@@ -707,6 +749,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     });
     dragDropTabs.bind(this.element);
 
+    this.addListeners();
+
     if (this.displayDrawer) {
       this.setPosition({
         left: NaN,
@@ -719,23 +763,12 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       });
     }
 
-    const html = $(this.element);
-
-    $('.gm-screen-button').on('contextmenu', async () => {
-      if (!getGame().user?.isGM) {
-        return;
-      }
-
-      const config = new GmScreenSettings({});
-      await config.render({ force: true });
-    });
-
     // stop here if there are no user viewable grids
     if (!this.hasUserViewableGrids) {
       return;
     }
 
-    this.injectCellContents(html);
+    this.injectCellContents();
     this.updateClassesAndFixButtons();
 
     // populate the --grid-cell-width variable
@@ -747,30 +780,33 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const cols = vanillaGridElementStyles['grid-template-columns'].split(' ');
     const colWidth = cols[0];
 
-    $(html)
-      .find('.gm-screen-grid')
-      .each((i, gridElement) => {
-        gridElement.style.setProperty('--grid-cell-width', colWidth);
-      });
+    this.element.querySelectorAll('.gm-screen-grid').forEach((gridElement) => {
+      if (!(gridElement instanceof HTMLElement)) {
+        return;
+      }
+      gridElement.style.setProperty('--grid-cell-width', colWidth);
+    });
   }
 
-  /**
-   * @override
-   */
-  async _attachFrameListeners() {
-    super._attachFrameListeners();
+  addListeners() {
+    this.element.querySelectorAll('.gm-screen-actions button, .gm-screen-grid-cell-header a').forEach((btn) => {
+      btn.addEventListener('click', this.handleClickEvent.bind(this));
+    });
 
-    const html = $(this.element);
+    this.element.querySelector('.gm-screen-button')?.addEventListener('contextmenu', async () => {
+      if (!getGame().user?.isGM) {
+        return;
+      }
 
-    $(html).on('click', '.gm-screen-actions button', this.handleClickEvent.bind(this));
-    $(html).on('click', '.gm-screen-grid-cell-header a', this.handleClickEvent.bind(this));
+      const config = new GmScreenSettings({});
+      await config.render({ force: true });
+    });
   }
 
   /**
    * Utility method to help typescript understand that these are only
    * actors, items, journals, or rolltables
    *
-   * @param entityUuid - relevant entityUuid
    */
   async getRelevantGmScreenDocument(
     entityUuid
@@ -796,10 +832,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
    * create and cache the custom Application when we need to during GmScreenApplication.render();
    * and then use that cached Application instance to render
    *
-   * @param entityUuid - Identifier for the Entity in the cell
-   * @param cellId - Identifier for the Cell
-   * @param gridCellContentElement - the element to inject into
-   * @returns
    */
   async getCellApplicationClass(
     entityUuid: string,
@@ -900,16 +932,33 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         TextDocumentSheet._postRender = async function internalPostRender() {
           this.cellId = cellId;
 
-          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.options.document.name);
+          const cell = document.getElementById(this.cellId.replace('#', ''));
+          if (!cell) {
+            return;
+          }
+          const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
+          if (titleElement) {
+            titleElement.textContent = this.options.document.name;
+          }
 
-          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-          gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
-          gridCellContent.html(this.form);
-          gridCellContent
-            .children()
-            // needed to show the journal page with styles
-            .wrapInner("<section class='journal-entry-content journal-entry-page overflow-y'></section>");
-          gridCellContent.find('.window-header').remove();
+          const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+          if (!gridCellContent) {
+            return;
+          }
+
+          gridCellContent.classList.remove(...gridCellContent.classList);
+          gridCellContent.classList.add('gm-screen-grid-cell-content');
+
+          gridCellContent.replaceChildren(this.form);
+
+          const wrapper = document.createElement('section');
+          wrapper.classList.add('journal-entry-content', 'journal-entry-page', 'overflow-y');
+
+          wrapper.replaceChildren(...gridCellContent.children[0].childNodes);
+
+          gridCellContent.children[0].replaceChildren(wrapper);
+
+          gridCellContent.querySelector('.window-header')?.remove();
         };
 
         TextDocumentSheet.close = emptyClose;
@@ -956,19 +1005,34 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         ActorDocumentSheet._postRender = async function postRender() {
           this.cellId = cellId;
 
-          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+          const cell = document.getElementById(this.cellId.replace('#', ''));
+          if (!cell) {
+            return;
+          }
+          const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
+          if (titleElement) {
+            titleElement.textContent = this.title;
+          }
 
-          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
-          gridCellContent.removeClass().addClass(['gm-screen-grid-cell-content']);
+          const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+          if (!gridCellContent) {
+            return;
+          }
+          gridCellContent.classList.remove(...gridCellContent.classList);
+          gridCellContent.classList.add('gm-screen-grid-cell-content');
+          gridCellContent.replaceChildren(this.form);
 
-          gridCellContent.html(this.form);
           if (!dndNpcStatBlock) {
-            gridCellContent.find('.window-header').css('visibility', 'hidden');
+            const header = gridCellContent.querySelector('.window-header');
+            if (header instanceof HTMLElement) {
+              header.style.visibility = 'hidden';
+            }
             return;
           }
 
-          gridCellContent.addClass('dnd5e2');
-          gridCellContent.html(
+          gridCellContent.classList.add('dnd5e2');
+
+          const pureHTML =
             (await relevantDocument.toEmbed({
               label: '',
               values: ['statblock'],
@@ -976,11 +1040,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
               cite: true,
               caption: false,
               captionPosition: 'bottom',
-            })) || this.form
-          );
-          gridCellContent
-            .children()
-            .wrap("<div class='dnd5e2-journal journal-entry-content journal-page-content'></div>");
+            })) || this.form;
+          const wrapper = document.createElement('div');
+          wrapper.classList.add('dnd5e2-journal', 'journal-entry-content', 'journal-page-content');
+          wrapper.appendChild(pureHTML);
+          gridCellContent.replaceChildren(wrapper);
         };
         ActorDocumentSheet.close = emptyClose;
 
@@ -1032,31 +1096,64 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         CompactDocumentSheet.cellId = cellId;
 
         CompactDocumentSheet._injectHTML = function injectHTML(html) {
-          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+          const cell = document.getElementById(this.cellId.replace('#', ''));
+          if (!cell) {
+            return;
+          }
+          const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
+          if (titleElement) {
+            titleElement.textContent = this.title;
+          }
 
-          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+          const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+          if (!gridCellContent) {
+            return;
+          }
+
+          const pureHTML = html.get(0);
+          if (!pureHTML) {
+            return;
+          }
 
           log(false, 'CompactEntitySheet overwritten _injectHTML', {
             targetElement: gridCellContent,
             gridCellContent,
             cellId: this.cellId,
-            html,
+            pureHTML,
           });
-          gridCellContent.append(html);
-          gridCellContent.children().wrap("<section class='window-content'></section>");
+
+          const wrapper = document.createElement('section');
+          wrapper.classList.add('window-content');
+          wrapper.appendChild(pureHTML);
+
+          gridCellContent.appendChild(wrapper);
           this._element = html;
         };
 
         CompactDocumentSheet._replaceHTML = function replaceHTML(element, html) {
-          $(this.cellId).find('.gm-screen-grid-cell-title').text(this.title);
+          const cell = document.getElementById(this.cellId.replace('#', ''));
+          if (!cell) {
+            return;
+          }
+          const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
+          if (titleElement) {
+            titleElement.textContent = this.title;
+          }
 
-          const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+          const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+          if (!gridCellContent) {
+            return;
+          }
+
           const pureHTML = html.get(0);
           if (!pureHTML) {
             return;
           }
-          gridCellContent.html(pureHTML);
-          gridCellContent.children().wrap("<section class='window-content'></section>");
+
+          const wrapper = document.createElement('section');
+          wrapper.classList.add('window-content');
+          wrapper.appendChild(pureHTML);
+          gridCellContent.appendChild(wrapper);
           this._element = html;
         };
 
@@ -1070,62 +1167,61 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     return this.apps[cellId];
   }
 
-  injectCellContents(html: JQuery) {
-    $(html)
-      .find('[data-entity-uuid]')
-      .each((index, gridEntry) => {
-        try {
-          // `this` is the parent .gm-screen-grid-cell
-          const relevantUuid = gridEntry.dataset.entityUuid;
-          if (!relevantUuid) {
-            return;
-          }
-          const cellId = `#${gridEntry.id}`;
-          const { entryId, dndNpc, dndNpcStatBlock } = gridEntry.dataset;
+  injectCellContents() {
+    this.element.querySelectorAll('[data-entity-uuid]').forEach((gridEntry) => {
+      try {
+        if (!(gridEntry instanceof HTMLElement)) {
+          return;
+        }
+        // `this` is the parent .gm-screen-grid-cell
+        const relevantUuid = gridEntry.dataset.entityUuid;
+        if (!relevantUuid) {
+          return;
+        }
+        const cellId = `#${gridEntry.id}`;
+        const { entryId, dndNpc, dndNpcStatBlock } = gridEntry.dataset;
 
-          log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry });
+        log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry });
 
-          this.getCellApplicationClass(relevantUuid, cellId, dndNpc === 'true', dndNpcStatBlock === 'true')
-            .then(async (application) => {
-              log(false, `got application for "${cellId}"`, {
-                application,
-              });
+        this.getCellApplicationClass(relevantUuid, cellId, dndNpc === 'true', dndNpcStatBlock === 'true')
+          .then(async (application) => {
+            log(false, `got application for "${cellId}"`, {
+              application,
+            });
 
-              if (!application) {
-                if (entryId) {
-                  // remove old applications that can't be rendered
-                  await this.removeEntryFromActiveGrid(entryId, cellId.replace('#', ''));
-                }
-
-                throw new Error('no application exists to render');
+            if (!application) {
+              if (entryId) {
+                // remove old applications that can't be rendered
+                await this.removeEntryFromActiveGrid(entryId, cellId.replace('#', ''));
               }
 
-              const classes = application.options.classes.join(' ');
+              throw new Error('no application exists to render');
+            }
 
-              const gridCellContent = $(gridEntry).find('.gm-screen-grid-cell-content');
-              gridCellContent.addClass(classes);
+            const gridCellContent = gridEntry.querySelector('.gm-screen-grid-cell-content');
+            if (application.options.classes.length > 0) {
+              gridCellContent?.classList.add(...application.options.classes);
+            }
 
-              application.render(true);
-            })
-            .catch((e) => {
-              log(true, 'error trying to render a gridEntry', {
-                gridEntry,
-                cellId,
-                relevantUuid,
-                error: e,
-              });
+            application.render(true);
+          })
+          .catch((e) => {
+            log(true, 'error trying to render a gridEntry', {
+              gridEntry,
+              cellId,
+              relevantUuid,
+              error: e,
             });
-        } catch (e) {
-          log(false, 'erroring', e, {
-            gridEntry,
           });
-        }
-      });
+      } catch (e) {
+        log(false, 'erroring', e, {
+          gridEntry,
+        });
+      }
+    });
 
     // set some CSS Variables for child element use
-    updateCSSPropertyVariable(html, '.gm-screen-grid-cell', 'width', '--this-cell-width');
-
-    return html;
+    updateCSSPropertyVariable(this.element, '.gm-screen-grid-cell', 'width', '--this-cell-width');
   }
 
   /**
@@ -1205,35 +1301,47 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     return newAppData;
   }
 
-  async _onDrop(event) {
+  async _onDrop(event: DragEvent) {
     event.stopPropagation();
 
     // do nothing if this user is not the gm
     if (!getGame().user?.isGM) return;
 
     // Try to extract the data
-    let data;
-    try {
-      data = JSON.parse(event.dataTransfer.getData('text/plain'));
-    } catch (error) {
-      log(false, 'error parsing data from drag and drop', error);
+    const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event) as {
+      type: 'JournalEntry' | 'JournalEntryPage' | 'RollTable' | 'Item' | 'Actor';
+      uuid: string;
+      pack?: string;
+    } | null;
+    if (!data) return;
+
+    if (!event.currentTarget || !event.target) {
       return;
     }
 
     log(false, 'onDrop', {
       event,
       data,
-      closestGridCell: $(event.currentTarget).closest('.gm-screen-grid-cell'),
+      closestGridCell:
+        event.currentTarget instanceof HTMLElement ? event.currentTarget.closest('.gm-screen-grid-cell') : null,
     });
 
-    // only move forward if this is a JournalEntry or RollTable
     if (!['JournalEntry', 'JournalEntryPage', 'RollTable', 'Item', 'Actor'].includes(data.type)) {
       return;
     }
 
     const entityUuid = data.pack ? `Compendium.${data.pack}.${data.uuid}` : data.uuid;
 
-    const gridElementPosition = getGridElementsPosition($(event.target).closest('.gm-screen-grid-cell'));
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+
+    const gridCell = event.target.closest('.gm-screen-grid-cell');
+    if (!(gridCell instanceof HTMLElement)) {
+      return;
+    }
+
+    const gridElementPosition = getGridElementsPosition(gridCell);
     const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
 
     const relevantDocument = await this.getRelevantGmScreenDocument(entityUuid);

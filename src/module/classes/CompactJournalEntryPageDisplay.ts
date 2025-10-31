@@ -18,33 +18,37 @@ export class CompactJournalEntryPageDisplay extends foundry.applications.sheets.
       return;
     }
 
-    $(this.cellId).find('.gm-screen-grid-cell-title').text(this.options.document.name);
+    const cell = document.getElementById(this.cellId.replace('#', ''));
+    if (!cell) {
+      return;
+    }
+    const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
+    if (titleElement) {
+      titleElement.textContent = this.options.document.name;
+    }
 
-    const gridCellContent = $(this.cellId).find('.gm-screen-grid-cell-content');
+    const gridCellContent = cell.querySelector('.gm-screen-grid-cell-content');
+    if (!gridCellContent) {
+      return;
+    }
 
     switch (this.options.document.type) {
       case 'image':
-        gridCellContent.html(
-          `<img src="${this.options.document.src}" alt="${this.options.document.image.caption || 'image'}"></img>`
-        );
+        gridCellContent.innerHTML = `<img src="${this.options.document.src}" alt="${this.options.document.image.caption || 'image'}"></img>`;
         break;
       case 'pdf':
-        gridCellContent.html(
-          `<iframe src="scripts/pdfjs/web/viewer.html?file=/${this.options.document.src}"></iframe>`
-        );
+        gridCellContent.innerHTML = `<iframe src="scripts/pdfjs/web/viewer.html?file=/${this.options.document.src}"></iframe>`;
         break;
       case 'video':
-        gridCellContent.html(
-          `<video src="${this.options.document.src}" ${this.options.document.video.controls ? 'controls' : ''} ${this.options.document.video.autoplay ? 'autoplay' : ''}></video>`
-        );
+        gridCellContent.innerHTML = `<video src="${this.options.document.src}" ${this.options.document.video.controls ? 'controls' : ''} ${this.options.document.video.autoplay ? 'autoplay' : ''}></video>`;
         break;
       default:
         if (this.options.document.text.content) {
-          gridCellContent.html(this.options.document.text.content);
+          gridCellContent.innerHTML = this.options.document.text.content;
         }
     }
 
-    $(this.form).hide();
+    this.form.style.display = 'none';
   }
 
   /** @override */
