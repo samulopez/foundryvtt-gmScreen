@@ -77,6 +77,7 @@
         "TabLabel": "タブの名称",
         "Rows": "行数",
         "Columns": "列数",
+        "Shared": "共有",
         "Add": "タブを追加"
       },
       "errors": {
