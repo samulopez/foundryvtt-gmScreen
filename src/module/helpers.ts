@@ -87,7 +87,7 @@ export function getUserCellConfigurationInput(
         {
           action: 'yes',
           icon: 'fas fa-check',
-          label: getLocalization().localize('Submit'),
+          label: getLocalization().localize('Save'),
           default: true,
           callback: (_event, button, dialog) => {
             const html = dialog.element;
