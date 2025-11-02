@@ -73,12 +73,12 @@
       "GridConfig": "Grid Configuration",
       "GridTabs": "Grid Tab Configuration",
       "table": {
-        "TabOrder": "Order",
-        "TabLabel": "Tab Label",
-        "Rows": "Rows Override",
+        "Add": "Add",
         "Columns": "Columns Override",
+        "Rows": "Rows Override",
         "Shared": "Shared",
-        "Add": "Add"
+        "TabLabel": "Tab Label",
+        "TabOrder": "Order"
       },
       "errors": {
         "empty": "Cannot save the grid with no tabs."

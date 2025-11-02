@@ -73,11 +73,12 @@
       "GridConfig": "Rasterkonfiguration",
       "GridTabs": "Raster-Reiter-Konfiguration",
       "table": {
-        "TabOrder": "Tab order",
-        "TabLabel": "Reiter Bezeichnung",
-        "Rows": "Zeilen Überschreiben",
+        "Add": "Hinzufügen",
         "Columns": "Spalten Überschreiben",
-        "Add": "Hinzufügen"
+        "Rows": "Zeilen Überschreiben",
+        "Shared": "Geteilt",
+        "TabLabel": "Reiter Bezeichnung",
+        "TabOrder": "Tab Reihenfolge"
       },
       "errors": {
         "empty": "Speichern des Rasters ohne Reiter nicht möglich."
