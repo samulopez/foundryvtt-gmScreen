@@ -77,11 +77,12 @@
       "GridConfig": "Configuración de la rejilla",
       "GridTabs": "Configuración de las pestañas de la rejilla",
       "table": {
-        "TabOrder": "Tab order",
-        "TabLabel": "Nombre de la pestaña",
-        "Rows": "Sobreescribir filas",
+        "Add": "Añadir",
         "Columns": "Sobreescribir columnas",
-        "Add": "Añadir"
+        "Rows": "Sobreescribir filas",
+        "Shared": "Compartido",
+        "TabLabel": "Nombre de la pestaña",
+        "TabOrder": "Orden"
       },
       "errors": {
         "empty": "No se puede guardar una rejilla sin pestañas"

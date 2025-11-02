@@ -73,12 +73,12 @@
       "GridConfig": "スクリーン設定",
       "GridTabs": "スクリーンのタブ設定",
       "table": {
-        "TabOrder": "並び順",
-        "TabLabel": "タブの名称",
-        "Rows": "行数",
+        "Add": "タブを追加",
         "Columns": "列数",
+        "Rows": "行数",
         "Shared": "共有",
-        "Add": "タブを追加"
+        "TabLabel": "タブの名称",
+        "TabOrder": "並び順"
       },
       "errors": {
         "empty": "タブなしでスクリーンの設定を保存することはできません。"
