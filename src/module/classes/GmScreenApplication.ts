@@ -419,16 +419,15 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           if (!(e.target instanceof HTMLElement) || !(e.target.parentElement instanceof HTMLElement)) {
             return;
           }
-          if (!entryId) {
-            return;
-          }
           const { x, y } = getGridElementsPosition(e.target.parentElement);
 
-          const cellToConfigure: GmScreenGridEntry = this.activeGrid.entries[entryId] || {
-            x,
-            y,
-            entryId: `${x}-${y}`,
-          };
+          const cellToConfigure: GmScreenGridEntry = entryId
+            ? this.activeGrid.entries[entryId]
+            : {
+                x,
+                y,
+                entryId: `${x}-${y}`,
+              };
 
           log(false, 'configureCell cellToConfigure', cellToConfigure);
 
