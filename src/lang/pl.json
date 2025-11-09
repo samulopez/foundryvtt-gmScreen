@@ -74,8 +74,8 @@
       "GridTabs": "Konfiguracja zakładek siatki",
       "table": {
         "Add": "Dodaj",
-        "Columns": "Zastąpienie kolumn",
-        "Rows": "Zastąpienie wierszy",
+        "Columns": "Nadpisanie kolumn",
+        "Rows": "Nadpisanie wierszy",
         "Shared": "Udostępnione",
         "TabLabel": "Etykieta zakładki",
         "TabOrder": "Kolejność"
