@@ -1,0 +1,96 @@
+{
+  "GMSCR": {
+    "Grid": "Siatka",
+    "gmScreen": {
+      "Title": "Ekran MG",
+      "ClearCell": "Wyczyść komórkę",
+      "ConfigureCell": "Konfiguruj rozpiętość kolumn i wierszy",
+      "EmptyCellHint": "Przeciągnij i upuść wpis dziennika, tabelę rzutów, postać lub przedmiot ze świata lub kompendium.",
+      "Open": "Ekran MG",
+      "OpenPlayer": "Ekran gracza",
+      "OpenFull": "Otwórz pełną kartę",
+      "ShowNPCStatBlock": "Pokaż blok statystyk",
+      "ShowNPCNormal": "Pokaż kartę BN",
+      "Refresh": "Odśwież",
+      "Reset": "Wyczyść siatkę"
+    },
+    "settings": {
+      "gm-screen-config": {
+        "Name": "Zakładki siatki",
+        "Label": "Konfiguracja zakładek",
+        "Hint": "Dodaj, usuń i zaktualizuj zakładki siatki tutaj."
+      },
+      "columns": {
+        "Name": "Kolumny",
+        "Hint": "Ile kolumn chcesz? Zmiana tego ustawienia może wymagać wyczyszczenia siatki."
+      },
+      "rows": {
+        "Name": "Wiersze",
+        "Hint": "Ile wierszy chcesz? Zmiana tego ustawienia może wymagać wyczyszczenia siatki."
+      },
+      "right-margin": {
+        "Name": "Tylko panel: Prawy margines",
+        "Hint": "Ustawia odstęp od paska bocznego do prawej krawędzi ekranu MG. Ta wartość wpływa na maksymalną możliwą szerokość ekranu w trybie panelu."
+      },
+      "drawer-height": {
+        "Name": "Tylko panel: Wysokość",
+        "Hint": "Ustawia wysokość ekranu MG w trybie panelu."
+      },
+      "drawer-width": {
+        "Name": "Tylko panel: Szerokość",
+        "Hint": "Obliczana jako procent dostępnej szerokości ekranu po uwzględnieniu paska bocznego i prawego marginesu."
+      },
+      "drawer-opacity": {
+        "Name": "Tylko panel: Przezroczystość",
+        "Hint": "Kontroluje jak nieprzezroczysty jest panel."
+      },
+      "condensedButton": {
+        "Name": "Skondensowany przycisk ekranu MG",
+        "Hint": "Usuwa tekst z przycisku"
+      },
+      "reset": {
+        "Name": "Reset",
+        "Hint": "Wyczyść wpisy siatki. Ta akcja nie może zostać cofnięta."
+      },
+      "display-as-drawer": {
+        "Name": "Wyświetlaj jako panel",
+        "Hint": "Wyświetlaj ekran MG jako panel na dole ekranu zamiast normalnego okna dialogowego. Jeśli chcesz użyć osobnego okna, ustaw jako fałsz."
+      }
+    },
+    "warnings": {
+      "noGrids": "Twój MG nie udostępnił żadnych siatek ekranu MG.",
+      "clearConfirm": {
+        "Title": "Wyczyść siatkę",
+        "Content": "Czy na pewno chcesz wyczyścić wpisy siatki? Ta akcja nie może zostać cofnięta."
+      }
+    },
+    "cellConfigDialog": {
+      "CellConfig": "Konfiguracja komórki",
+      "RowSpan": "Rozpiętość wierszy",
+      "ColSpan": "Rozpiętość kolumn"
+    },
+    "gridConfig": {
+      "GridConfig": "Konfiguracja siatki",
+      "GridTabs": "Konfiguracja zakładek siatki",
+      "table": {
+        "Add": "Dodaj",
+        "Columns": "Zastąpienie kolumn",
+        "Rows": "Zastąpienie wierszy",
+        "Shared": "Udostępnione",
+        "TabLabel": "Etykieta zakładki",
+        "TabOrder": "Kolejność"
+      },
+      "errors": {
+        "empty": "Nie można zapisać siatki bez zakładek."
+      }
+    },
+    "entitySheet": {
+      "Label": "Karta ekranu MG",
+      "Hint": "Ustaw kartę używaną specjalnie na ekranie MG dla tego elementu."
+    },
+    "keybindings": {
+      "openCloseScreen": "Otwórz/Zamknij ekran MG",
+      "changeTab": "Zmień zakładkę ekranu MG"
+    }
+  }
+}

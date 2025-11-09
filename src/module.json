@@ -33,6 +33,11 @@
       "lang": "ja",
       "name": "日本語",
       "path": "lang/ja.json"
+    },
+    {
+      "lang": "pl",
+      "name": "Polski",
+      "path": "lang/pl.json"
     }
   ],
   "media": [
