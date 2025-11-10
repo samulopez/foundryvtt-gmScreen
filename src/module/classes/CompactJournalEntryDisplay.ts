@@ -4,8 +4,6 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
   constructor(options) {
     super(options);
     this.cellId = options.cellId;
-    this.options.position.width = 'auto';
-    this.options.position.height = 'auto';
   }
 
   // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -35,13 +33,12 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
       if (windowHeader) {
         windowHeader.remove();
       }
+      gridCellContent.classList.remove(...gridCellContent.classList);
+      gridCellContent.classList.add('gm-screen-grid-cell-content');
     }
-    this.setPosition({
-      width: 'auto',
-      height: 'auto',
-      left: 0,
-      top: 0,
-    });
+    // incomplete type definitions
+    // @ts-expect-error
+    this.toggleSidebar();
   }
 
   /** @override */
