@@ -900,6 +900,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           document: relevantDocument,
           editable: false,
           cellId,
+          window: {
+            ...sheet.options.window,
+            positioned: false,
+            resizable: false,
+          },
         });
         break;
 
