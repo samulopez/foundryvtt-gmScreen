@@ -900,6 +900,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           document: relevantDocument,
           editable: false,
           cellId,
+          id: `gmscreen-journal-${relevantDocument.id}`,
           window: {
             ...sheet.options.window,
             positioned: false,
@@ -975,7 +976,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           cellId,
         });
 
-        this.apps[cellId] = new CompactJournalEntryPageDisplay({ document: relevantDocument, cellId });
+        this.apps[cellId] = new CompactJournalEntryPageDisplay({
+          document: relevantDocument,
+          id: `gmscreen-journalentrypage-${relevantDocument.id}`,
+          cellId,
+        });
         break;
 
       case relevantDocument instanceof RollTable:
@@ -983,7 +988,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           cellId,
         });
 
-        this.apps[cellId] = new CompactRollTableDisplay({ document: relevantDocument, cellId });
+        this.apps[cellId] = new CompactRollTableDisplay({
+          document: relevantDocument,
+          id: `gmscreen-rolltable-${relevantDocument.id}`,
+          cellId,
+        });
         break;
 
       case sheet instanceof foundry.applications.sheets.ActorSheetV2 && relevantDocument instanceof Actor:
@@ -1092,6 +1101,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             width: '100%',
             height: '100%',
             positioned: false,
+            id: `gmscreen-compact-${relevantDocument.id}`,
             resizable: isActorOrItemResizable(relevantDocument.constructor.name),
           });
 
@@ -1129,8 +1139,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           const wrapper = document.createElement('section');
           wrapper.classList.add('window-content');
           wrapper.appendChild(pureHTML);
-
-          gridCellContent.appendChild(wrapper);
+          gridCellContent.replaceChildren(wrapper);
           this._element = html;
         };
 
@@ -1157,7 +1166,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           const wrapper = document.createElement('section');
           wrapper.classList.add('window-content');
           wrapper.appendChild(pureHTML);
-          gridCellContent.appendChild(wrapper);
+          gridCellContent.replaceChildren(wrapper);
           this._element = html;
         };
 
