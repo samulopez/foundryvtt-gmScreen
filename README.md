@@ -86,6 +86,7 @@ No information for compatibility with other modules is available at this time. T
 
 ## Known Issues
 
+- Migrating from FoundryVTT v11 and GM Screen 4.0.4 to newer versions may cause [issues](https://github.com/samulopez/foundryvtt-gmScreen/issues/60) with existing worlds. Only way to resolve this is resetting the [settings](https://github.com/samulopez/foundryvtt-gmScreen/issues/60#issuecomment-3736431068).
 - The grid does not refresh automatically when settings are changed, click the "refresh" button.
 - Some information will appear to players if they are shared a screen that contains things they do not have permission to view normally.
 - It is possible to overlap your cells with column/row spanning. It should not be possible to make it so you cannot recover from such a situation manually.
