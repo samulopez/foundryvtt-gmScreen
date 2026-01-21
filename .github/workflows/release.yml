@@ -62,7 +62,7 @@ jobs:
       # Publish this new version to the Foundry VTT Module Listing
       - name: Publish to Foundry VTT Repo
         id: publish_foundry_repo
-        run: npx @ghost-fvtt/foundry-publish
+        run: npx @ghost-fvtt/foundry-publish@4.0.0
         env:
           FVTT_DRY_RUN: ${{ steps.set-pr-deploy-info.outputs.prerelease }}
           FVTT_MANIFEST_PATH: src/module.json
