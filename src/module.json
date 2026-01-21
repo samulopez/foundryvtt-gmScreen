@@ -2,7 +2,7 @@
   "id": "gm-screen",
   "title": "GM Screen",
   "description": "Creates a Configurable modular grid that GMs can populate with journal entries, rollable tables, etc.",
-  "version": "5.5.1",
+  "version": "5.5.2",
   "authors": [
     {
       "name": "samulopez",
