@@ -5,6 +5,7 @@
       "Title": "GM Screen",
       "ClearCell": "Clear Cell",
       "ConfigureCell": "Configure Column and Row Spanning",
+      "ChooseImage": "Choose Image for Cell without using a Journal Page",
       "EmptyCellHint": "Drag and Drop a Journal Entry, Rollable Table, Actor, or Item from either the World or a Compendium.",
       "Open": "GM Screen",
       "OpenPlayer": "Player Screen",

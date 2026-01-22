@@ -19,10 +19,11 @@ export interface GmScreenGridEntry {
   spanRows?: number;
   spanCols?: number;
   entityUuid?: string;
-  type?: 'JournalEntry' | 'JournalEntryPage' | 'RollTable' | 'Item' | 'Actor';
+  type?: 'JournalEntry' | 'JournalEntryPage' | 'RollTable' | 'Item' | 'Actor' | 'Image';
   entryId: string;
   isDndNpc?: boolean;
   isDndNpcStatBlock?: boolean;
+  imagePath?: string;
 }
 
 export interface GmScreenApi {

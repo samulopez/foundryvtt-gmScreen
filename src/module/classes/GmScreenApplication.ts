@@ -27,6 +27,7 @@ enum ClickAction {
   statBlock = 'statBlock',
   toggleGmScreen = 'toggle-gm-screen',
   tab = 'tab',
+  chooseImage = 'chooseImage',
 }
 
 interface CustomOptions {
@@ -251,6 +252,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       delete clearedCell.type;
       delete clearedCell.isDndNpc;
       delete clearedCell.isDndNpcStatBlock;
+      delete clearedCell.imagePath;
       newEntries[entryId] = clearedCell;
     } else {
       delete newEntries[entryId];
@@ -490,9 +492,25 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         break;
       }
       case ClickAction.open: {
-        if (!entityUuid) {
+        if (!entityUuid || !entryId) {
           return;
         }
+        const entry = this.activeGrid.entries[entryId];
+        if (entry.type === 'Image') {
+          if (!entry.imagePath) {
+            return;
+          }
+          const ip = new foundry.applications.apps.ImagePopout({
+            src: entry.imagePath,
+            uuid: entityUuid,
+            window: { title: entry.imagePath },
+          });
+
+          // Display the image popout
+          ip.render({ force: true });
+          return;
+        }
+
         try {
           const relevantDocument = await this.getRelevantGmScreenDocument(entityUuid);
           const relevantDocumentSheet = relevantDocument?.sheet;
@@ -577,6 +595,33 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         };
 
         await this.setGridData(newGridData);
+        break;
+      }
+      case ClickAction.chooseImage: {
+        const gridCell = e.currentTarget.closest('.gm-screen-grid-cell');
+        if (!(gridCell instanceof HTMLElement)) {
+          return;
+        }
+
+        const gridElementPosition = getGridElementsPosition(gridCell);
+        const newEntryId = `${gridElementPosition.x}-${gridElementPosition.y}`;
+        const fp = new foundry.applications.apps.FilePicker({
+          type: 'image',
+          callback: (path) => {
+            const newEntry: GmScreenGridEntry = {
+              ...gridElementPosition,
+              entryId: newEntryId,
+              entityUuid: `Image.${foundry.utils.randomID()}`,
+              type: 'Image',
+              isDndNpc: false,
+              isDndNpcStatBlock: false,
+              imagePath: path,
+            };
+
+            this.addEntryToActiveGrid(newEntry);
+          },
+        });
+        fp.render({ force: true });
         break;
       }
       default:
@@ -1192,9 +1237,13 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           return;
         }
         const cellId = `#${gridEntry.id}`;
-        const { entryId, dndNpc, dndNpcStatBlock } = gridEntry.dataset;
+        const { entryId, dndNpc, dndNpcStatBlock, imagePath } = gridEntry.dataset;
 
-        log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry });
+        log(false, 'gridEntry with uuid defined found', { relevantUuid, cellId, gridEntry, imagePath });
+        if (imagePath) {
+          // we will show the image directly in the cell; no application needed
+          return;
+        }
 
         this.getCellApplicationClass(relevantUuid, cellId, dndNpc === 'true', dndNpcStatBlock === 'true')
           .then(async (application) => {
