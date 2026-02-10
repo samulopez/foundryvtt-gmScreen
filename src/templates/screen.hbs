@@ -1,10 +1,9 @@
-<div
-  id="{{id}}"
-  class="gm-screen-app themed {{#if darkTheme}}theme-dark{{else}}theme-light{{/if}} {{#if expanded}}expanded{{/if}} {{#if hidden}}hidden{{/if}} {{classes}} {{#if displayDrawer}}window-app gm-screen-drawer{{/if}}"
-  {{#if displayDrawer}} style="
-   opacity: {{drawerOpacity}};
-   --gm-screen-width: {{drawerWidth}};
-   --gm-screen-height: {{drawerHeight}}vh;
-   --gm-screen-right-offset: {{rightMargin}}vw;
-   " {{/if}}>  
+<div id="{{id}}"
+     class="gm-screen-app themed {{#if darkThemeApps }}theme-dark{{else }}theme-light{{/if }} {{#if darkThemeUI }}gm-theme-dark{{else }}gm-theme-light{{/if }} {{#if expanded }}expanded{{/if }} {{#if hidden }}hidden{{/if }} {{classes }} {{#if displayDrawer }}window-app gm-screen-drawer{{/if }}"
+     {{#if displayDrawer }}
+     style="opacity: {{drawerOpacity }};
+            --gm-screen-width: {{drawerWidth }};
+            --gm-screen-height: {{drawerHeight }}vh;
+            --gm-screen-right-offset: {{rightMargin }}vw"
+     {{/if }}>
 </div>

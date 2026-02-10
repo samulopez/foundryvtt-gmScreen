@@ -27,6 +27,7 @@ declare global {
     'core.uiConfig': {
       colorScheme: {
         interface: 'light' | 'dark';
+        applications: 'light' | 'dark';
       };
     };
   }
