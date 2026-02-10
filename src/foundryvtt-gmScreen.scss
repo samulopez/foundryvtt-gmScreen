@@ -13,6 +13,16 @@ $transition-timing: 400ms;
 .gm-screen-app {
   position: relative;
 
+  --gm-screen-background: var(--color-cool-5-90);
+  --gm-screen-button-text-color: var(--color-light-3);
+  --gm-screen-button-border-color: var(--color-light-5);
+
+  &.gm-theme-light {
+    --gm-screen-background: url(../../../ui/parchment.jpg);
+    --gm-screen-button-text-color: var(--color-dark-1);
+    --gm-screen-button-border-color: var(--color-dark-5);
+  }
+
   &.gm-screen-drawer {
     width: calc(
       var(--gm-screen-width) / 100 * (100vw - var(--gm-screen-right-offset) - var(--gm-screen-ui-right-width))
@@ -94,9 +104,9 @@ $transition-timing: 400ms;
       pointer-events: all;
       white-space: nowrap;
       width: auto;
-      background: var(--sidebar-background, var(--color-cool-5-90));
-      border: 1px solid var(--button-border-color);
-      color: var(--button-text-color);
+      background: var(--gm-screen-background);
+      border: 1px solid var(--gm-screen-button-border-color);
+      color: var(--gm-screen-button-text-color);
 
       &:focus {
         box-shadow: none;
@@ -372,8 +382,8 @@ $transition-timing: 400ms;
       gap: variables.$space * 0.5;
 
       > button {
-        background: var(--sidebar-background, var(--color-cool-5-90));
-        color: var(--button-text-color);
+        background: var(--gm-screen-background);
+        color: var(--gm-screen-button-text-color);
       }
     }
 
