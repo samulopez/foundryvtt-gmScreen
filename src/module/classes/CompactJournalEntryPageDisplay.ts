@@ -37,7 +37,11 @@ export class CompactJournalEntryPageDisplay extends foundry.applications.sheets.
         gridCellContent.innerHTML = `<img src="${this.options.document.src}" alt="${this.options.document.image.caption || 'image'}"></img>`;
         break;
       case 'pdf':
-        gridCellContent.innerHTML = `<iframe src="scripts/pdfjs/web/viewer.html?file=/${this.options.document.src}"></iframe>`;
+        gridCellContent.innerHTML = `<iframe src="scripts/pdfjs/web/viewer.html?file=${
+          this.options.document.src?.startsWith('https://') || this.options.document.src?.startsWith('http://')
+            ? this.options.document.src
+            : `/${this.options.document.src}`
+        }"></iframe>`;
         break;
       case 'video':
         gridCellContent.innerHTML = `<video src="${this.options.document.src}" ${this.options.document.video.controls ? 'controls' : ''} ${this.options.document.video.autoplay ? 'autoplay' : ''}></video>`;
