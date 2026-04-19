@@ -412,7 +412,7 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
       activeGridId: newActiveGridId,
     };
 
-    log(true, 'setting settings', {
+    log(false, 'setting settings', {
       newGmScreenConfig,
     });
 
