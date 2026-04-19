@@ -55,7 +55,7 @@ type JournalEntryPageProseMirrorSheetConstructor = new (
 ) => foundry.applications.sheets.journal.JournalEntryPageProseMirrorSheet & CustomOptions;
 
 type ItemV2Constructor = new (
-  options: Partial<foundry.applications.sheets.ItemSheetV2>
+  options: Partial<foundry.applications.sheets.ItemSheetV2.Configuration>
 ) => foundry.applications.sheets.ItemSheetV2 & CustomOptions;
 
 type ItemAndActorV1Constructor = new (
@@ -526,7 +526,11 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             relevantDocumentSheet.bringToTop();
             return;
           }
-          if (relevantDocument instanceof JournalEntryPage && relevantDocument.type === 'image') {
+          if (
+            relevantDocument instanceof JournalEntryPage &&
+            relevantDocument.type === 'image' &&
+            relevantDocumentSheet instanceof foundry.applications.sheets.journal.JournalEntryPageImageSheet
+          ) {
             const ip = new foundry.applications.apps.ImagePopout({
               src: relevantDocumentSheet.options.document.src,
               uuid: entityUuid,
@@ -941,13 +945,27 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           cellId,
         });
 
+        if (sheet instanceof foundry.applications.sheets.journal.JournalEntrySheet) {
+          this.apps[cellId] = new CompactJournalEntryDisplay({
+            document: relevantDocument,
+            editable: false,
+            cellId,
+            id: `gmscreen-journal-${relevantDocument.id}`,
+            window: {
+              ...sheet.options.window,
+              positioned: false,
+              resizable: false,
+            },
+          });
+          return this.apps[cellId];
+        }
+
         this.apps[cellId] = new CompactJournalEntryDisplay({
           document: relevantDocument,
           editable: false,
           cellId,
           id: `gmscreen-journal-${relevantDocument.id}`,
           window: {
-            ...sheet.options.window,
             positioned: false,
             resizable: false,
           },
@@ -1146,10 +1164,10 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
             width: '100%',
             height: '100%',
             positioned: false,
-            id: `gmscreen-compact-${relevantDocument.id}`,
             resizable: isActorOrItemResizable(relevantDocument.constructor.name),
           });
 
+        CompactDocumentSheet.options.id = `gmscreen-compact-${relevantDocument.id}`;
         CompactDocumentSheet.options.editable = false;
         CompactDocumentSheet.options.popOut = false;
         CompactDocumentSheet.cellId = cellId;

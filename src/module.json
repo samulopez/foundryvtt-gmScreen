@@ -80,8 +80,8 @@
   ],
   "compatibility": {
     "minimum": 13,
-    "verified": 13,
-    "maximum": 13
+    "verified": 14,
+    "maximum": 14
   },
   "bugs": "https://github.com/samulopez/foundryvtt-gmScreen/issues",
   "changelog": "https://github.com/samulopez/foundryvtt-gmScreen/releases",
