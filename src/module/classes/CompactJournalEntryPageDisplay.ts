@@ -1,5 +1,6 @@
-export class CompactJournalEntryPageDisplay extends foundry.applications.sheets.journal
-  .JournalEntryPageHandlebarsSheet {
+export class CompactJournalEntryPageDisplay
+  extends foundry.applications.sheets.journal.JournalEntryPageHandlebarsSheet
+{
   cellId: string;
 
   constructor(options) {
