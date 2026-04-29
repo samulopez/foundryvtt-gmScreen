@@ -16,7 +16,7 @@
   "author": "Samuel Lopez",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/compat": "2.0.3",
+    "@eslint/compat": "2.0.5",
     "@eslint/js": "9.33.0",
     "@eslint/json": "1.2.0",
     "@prettier/plugin-oxc": "0.1.4",
