@@ -33,9 +33,16 @@ export class CompactJournalEntryPageDisplay
       return;
     }
 
+    const gridCellLink = cell.querySelector('a[data-link]');
+
     switch (this.options.document.type) {
       case 'image':
         gridCellContent.innerHTML = `<img src="${this.options.document.src}" alt="${this.options.document.image.caption || 'image'}"></img>`;
+        if (!gridCellLink) {
+          break;
+        }
+        gridCellLink.removeAttribute('data-link');
+        gridCellLink.setAttribute('data-action', 'open');
         break;
       case 'pdf':
         gridCellContent.innerHTML = `<iframe src="scripts/pdfjs/web/viewer.html?file=${
