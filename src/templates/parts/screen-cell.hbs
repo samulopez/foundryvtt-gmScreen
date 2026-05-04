@@ -48,20 +48,26 @@
     {{#if this.isDndNpcStatBlock }}
       <i class="fas fa-shield"></i>{{else}}<i class="fas fa-shield-halved"></i>{{/if}}</a>
   {{/if}}
-  <a data-action="open" data-tooltip="GMSCR.gmScreen.OpenFull">
-    {{#if this.type }}
-      {{#GMSCR-switch this.type}}
-      {{#GMSCR-case 'JournalEntry'}}<i class="fas fa-book-open"></i>{{/GMSCR-case}}
-      {{#GMSCR-case 'JournalEntryPage'}}<i class="fas fa-book-open"></i>{{/GMSCR-case}}
-      {{#GMSCR-case 'RollTable'}}<i class="fas fa-th-list"></i>{{/GMSCR-case}}
-      {{#GMSCR-case 'Actor'}}<i class="fas fa-users"></i>{{/GMSCR-case}}
-      {{#GMSCR-case 'Item'}}<i class="fas fa-suitcase"></i>{{/GMSCR-case}}
-      {{#GMSCR-case 'Image'}}<i class="fas fa-file-image"></i>{{/GMSCR-case}}
-    {{/GMSCR-switch}}
-  {{else}}
-    <i class="fas fa-edit"></i>
+  {{#if this.type }}
+    {{#if (or (eq this.type 'JournalEntry') (eq this.type 'JournalEntryPage')) }}
+      <a data-link
+         data-tooltip="GMSCR.gmScreen.OpenFull"
+         data-type="{{this.type}}"
+         data-uuid="{{this.entityUuid}}"
+         data-id="{{this.entryId}}"><i class="fas fa-book-open"></i></a>
+    {{else }}
+      <a data-action="open" data-tooltip="GMSCR.gmScreen.OpenFull">
+        {{#GMSCR-switch this.type}}
+        {{#GMSCR-case 'RollTable'}}<i class="fas fa-th-list"></i>{{/GMSCR-case}}
+        {{#GMSCR-case 'Actor'}}<i class="fas fa-users"></i>{{/GMSCR-case}}
+        {{#GMSCR-case 'Item'}}<i class="fas fa-suitcase"></i>{{/GMSCR-case}}
+        {{#GMSCR-case 'Image'}}<i class="fas fa-file-image"></i>{{/GMSCR-case}}
+      {{/GMSCR-switch}}
+    </a>
   {{/if}}
-</a>
+{{else}}
+  <a data-action="open" data-tooltip="GMSCR.gmScreen.OpenFull"><i class="fas fa-edit"></i></a>
+{{/if}}
 {{/if}}
 </div>
 <div class="gm-screen-grid-cell-content-wrapper">
