@@ -21,7 +21,7 @@
     "@eslint/json": "1.2.0",
     "@prettier/plugin-oxc": "0.1.4",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "8.39.1",
+    "@typescript-eslint/parser": "8.59.1",
     "eslint": "9.33.0",
     "eslint-config-airbnb-extended": "3.0.1",
     "eslint-config-prettier": "10.1.8",
