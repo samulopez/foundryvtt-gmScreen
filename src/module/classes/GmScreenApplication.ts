@@ -120,6 +120,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         resizable: true,
         frame: true,
         controls: [
+          ...this.options.window.controls,
           {
             action: ClickAction.refresh,
             label: getLocalization().localize(`${MODULE_ABBREV}.gmScreen.Refresh`),
