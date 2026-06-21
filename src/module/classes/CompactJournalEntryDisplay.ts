@@ -1,6 +1,8 @@
 export class CompactJournalEntryDisplay extends foundry.applications.sheets.journal.JournalEntrySheet {
   cellId: string;
 
+  _initialRenderDone?: boolean;
+
   constructor(options) {
     super(options);
     this.cellId = options.cellId;
@@ -37,8 +39,11 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
       gridCellContent.classList.add('gm-screen-grid-cell-content');
     }
     // incomplete type definitions
-    // @ts-expect-error
-    this.toggleSidebar();
+    if (!this._initialRenderDone) {
+      this._initialRenderDone = true;
+      // @ts-expect-error
+      this.toggleSidebar();
+    }
   }
 
   /** @override */
