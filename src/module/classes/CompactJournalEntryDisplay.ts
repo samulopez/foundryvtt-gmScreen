@@ -38,9 +38,10 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
       gridCellContent.classList.remove(...gridCellContent.classList);
       gridCellContent.classList.add('gm-screen-grid-cell-content');
     }
-    // incomplete type definitions
+
     if (!this._initialRenderDone) {
       this._initialRenderDone = true;
+      // incomplete type definitions
       // @ts-expect-error
       this.toggleSidebar();
     }
