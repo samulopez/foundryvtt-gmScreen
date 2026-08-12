@@ -232,7 +232,7 @@ export function postRenderV2(cellId: string) {
 
 // prevent closing if esc is pressed
 export function emptyClose() {
-  return this;
+  return Promise.resolve(this);
 }
 
 export function isActorOrItemResizable(documentName: string) {
