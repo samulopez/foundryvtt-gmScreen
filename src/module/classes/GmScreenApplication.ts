@@ -524,7 +524,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           // If the relevantEntitySheet is already rendered:
           if (relevantDocumentSheet.rendered) {
             relevantDocumentSheet.maximize();
-            relevantDocumentSheet.bringToTop();
+            relevantDocumentSheet.bringToFront();
             return;
           }
           if (
