@@ -54,8 +54,6 @@ export class CompactJournalEntryDisplay extends foundry.applications.sheets.jour
     if (!this._initialRenderDone) {
       this._initialRenderDone = true;
       if (!getGame().settings.get(MODULE_ID, MySettings.plainJournalCells)) {
-        // incomplete type definitions
-        // @ts-expect-error
         this.toggleSidebar();
       }
     }
