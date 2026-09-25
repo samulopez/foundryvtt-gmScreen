@@ -3,7 +3,6 @@ import { getGame, getLocalization, getUserViewableGrids, log } from './module/he
 import { MODULE_ABBREV, MODULE_ID, MySettings, TEMPLATES } from './module/constants';
 import { GmScreenSettings } from './module/classes/GmScreenSettings';
 import { GmScreenApplication } from './module/classes/GmScreenApplication';
-import { GmScreenApi } from './gridTypes';
 import './foundryvtt-gmScreen.scss';
 
 let gmScreenInstance: GmScreenApplication;
@@ -113,7 +112,7 @@ Hooks.once('ready', async () => {
       toggleGmScreenVisibility: toggleGmScreenOpen,
       refreshGmScreen,
       switchTab,
-    } as GmScreenApi;
+    };
   }
 
   if (getGame().user?.isGM) {
