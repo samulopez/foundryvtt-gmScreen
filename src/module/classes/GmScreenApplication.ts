@@ -68,6 +68,14 @@ type ItemAndActorV1Constructor = new (
   }
 ) => (ItemSheet & CustomOptions) | (ActorSheet & CustomOptions);
 
+interface PendingCellRefresh {
+  gridId: string;
+  entryId: string;
+  cellId: string;
+  entry?: Partial<GmScreenGridEntry>;
+  expectedData?: GmScreenConfig;
+}
+
 export class GmScreenApplication extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
@@ -81,6 +89,8 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   currentTab: string;
 
   draggedTab: HTMLElement | undefined;
+
+  pendingCellRefresh: PendingCellRefresh | undefined;
 
   constructor(options = {}) {
     super(options);
@@ -192,17 +202,24 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     }, 0);
   }
 
+  getUpdatedGridData(newGridData: GmScreenGrid) {
+    const newGmScreenConfig = foundry.utils.deepClone(this.data);
+    const updated = foundry.utils.setProperty(newGmScreenConfig, `grids.${newGridData.id}`, newGridData);
+
+    if (!updated) {
+      log(true, 'error occurred trying to set a grid data');
+      return undefined;
+    }
+
+    return newGmScreenConfig;
+  }
+
   /**
    * Helper function to update the gmScreenConfig setting with a new grid's worth of data
    */
   async setGridData(newGridData: GmScreenGrid) {
-    const newGmScreenConfig = foundry.utils.deepClone(this.data);
-
-    const updated = foundry.utils.setProperty(newGmScreenConfig, `grids.${newGridData.id}`, newGridData);
-
-    if (!updated) {
-      // something failed
-      log(true, 'error occurred trying to set a grid data');
+    const newGmScreenConfig = this.getUpdatedGridData(newGridData);
+    if (!newGmScreenConfig) {
       return;
     }
 
@@ -211,10 +228,37 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   }
 
   /**
+   * Updates a grid and arranges for its changed cell to be refreshed when the setting update completes.
+   */
+  async setGridDataWithPendingCellRefresh(newGridData: GmScreenGrid, pendingCellRefresh?: PendingCellRefresh) {
+    if (!pendingCellRefresh) {
+      await this.setGridData(newGridData);
+      return;
+    }
+
+    const newGmScreenConfig = this.getUpdatedGridData(newGridData);
+    if (!newGmScreenConfig) {
+      return;
+    }
+
+    this.pendingCellRefresh = {
+      ...pendingCellRefresh,
+      expectedData: foundry.utils.deepClone(newGmScreenConfig),
+    };
+
+    try {
+      await getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, newGmScreenConfig);
+    } catch (error) {
+      this.pendingCellRefresh = undefined;
+      throw error;
+    }
+  }
+
+  /**
    * Adds an Entry to the proper place on the active grid's data.
    * Replaces an existing entry if the entryId matches
    */
-  async addEntryToActiveGrid(newEntry: GmScreenGridEntry) {
+  async addEntryToActiveGrid(newEntry: GmScreenGridEntry, cellId?: string) {
     const newEntries = { ...this.activeGrid.entries };
 
     newEntries[newEntry.entryId] = {
@@ -234,7 +278,16 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       newGridData,
     });
 
-    await this.setGridData(newGridData);
+    await this.setGridDataWithPendingCellRefresh(
+      newGridData,
+      cellId
+        ? {
+            gridId: newGridData.id,
+            entryId: newEntry.entryId,
+            cellId,
+          }
+        : undefined
+    );
   }
 
   /**
@@ -244,16 +297,17 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     const clearedCell = foundry.utils.deepClone(this.activeGrid.entries[entryId]);
     const shouldKeepCellLayout = clearedCell.spanCols || clearedCell.spanRows;
 
+    delete clearedCell.entityUuid;
+    delete clearedCell.type;
+    delete clearedCell.isDndNpc;
+    delete clearedCell.isDndNpcStatBlock;
+    delete clearedCell.imagePath;
+
     const newEntries = {
       ...this.activeGrid.entries,
     };
 
     if (shouldKeepCellLayout) {
-      delete clearedCell.entityUuid;
-      delete clearedCell.type;
-      delete clearedCell.isDndNpc;
-      delete clearedCell.isDndNpcStatBlock;
-      delete clearedCell.imagePath;
       newEntries[entryId] = clearedCell;
     } else {
       delete newEntries[entryId];
@@ -270,7 +324,22 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       entries: newEntries,
     };
 
-    await this.setGridData(newGridData);
+    await this.setGridDataWithPendingCellRefresh(
+      newGridData,
+      gridCellId
+        ? {
+            gridId: newGridData.id,
+            entryId,
+            cellId: gridCellId,
+            entry: shouldKeepCellLayout
+              ? clearedCell
+              : {
+                  x: clearedCell.x,
+                  y: clearedCell.y,
+                },
+          }
+        : undefined
+    );
   }
 
   bringToFront() {
@@ -628,7 +697,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
               imagePath: path,
             };
 
-            await this.addEntryToActiveGrid(newEntry);
+            await this.addEntryToActiveGrid(newEntry, gridCell.id);
           },
         });
         fp.render({ force: true });
@@ -717,8 +786,103 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   }
 
   /**
-   * This currently thinly wraps `this.render`, but might be more complicated in the future.
+   * Re-renders and replaces one grid while preserving the rest of the application.
    */
+  async refreshGrid(gridId: string) {
+    const previousGrid = Array.from(this.element.querySelectorAll('.gm-screen-container')).find(
+      (grid) => grid instanceof HTMLElement && grid.dataset.tab === gridId
+    );
+    const grid = this.getHydratedGrids()[gridId];
+
+    if (!(previousGrid instanceof HTMLElement) || !grid) {
+      return false;
+    }
+
+    const context = await this._prepareContext(this.options);
+    const renderedGrid = await foundry.applications.handlebars.renderTemplate(TEMPLATES.screenGrid, {
+      ...context,
+      ...grid,
+    });
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = renderedGrid;
+    const replacementGrid = wrapper.firstElementChild;
+
+    if (!(replacementGrid instanceof HTMLElement)) {
+      return false;
+    }
+
+    previousGrid.replaceWith(replacementGrid);
+    this.bindGridDragDrop(replacementGrid);
+    this.addListeners(replacementGrid);
+    this.injectCellContents(replacementGrid);
+    this.updateGridCellWidths(replacementGrid);
+
+    return true;
+  }
+
+  async refreshGridCell(gridId: string, entryId: string, cellId: string, fallbackEntry?: Partial<GmScreenGridEntry>) {
+    const previousCell = document.getElementById(cellId);
+    const entry = this.data.grids[gridId]?.entries[entryId] ?? fallbackEntry;
+
+    if (!(previousCell instanceof HTMLElement) || !entry) {
+      return false;
+    }
+
+    const context = await this._prepareContext(this.options);
+    const renderedCell = await foundry.applications.handlebars.renderTemplate(TEMPLATES.screenCell, {
+      ...context,
+      ...entry,
+      gridId,
+    });
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = renderedCell;
+    const replacementCell = wrapper.firstElementChild;
+
+    if (!(replacementCell instanceof HTMLElement)) {
+      return false;
+    }
+
+    replacementCell.id = cellId;
+    previousCell.replaceWith(replacementCell);
+    this.bindDropToCell(replacementCell);
+    this.addListeners(replacementCell);
+    this.injectCellContents(replacementCell);
+    replacementCell.style.setProperty('--this-cell-width', getComputedStyle(replacementCell).width);
+
+    return true;
+  }
+
+  bindDropToCell(cell: HTMLElement) {
+    cell.addEventListener('dragover', (event) => {
+      if (getGame().user?.isGM) {
+        event.preventDefault();
+      }
+    });
+    cell.addEventListener('drop', this._onDrop.bind(this));
+  }
+
+  bindGridDragDrop(element: HTMLElement) {
+    const dragDrop = new foundry.applications.ux.DragDrop({
+      dragSelector: '.gm-screen-grid-cell',
+      dropSelector: '.gm-screen-grid-cell',
+      permissions: { dragstart: () => !!getGame().user?.isGM, drop: () => !!getGame().user?.isGM },
+      callbacks: { drop: this._onDrop.bind(this) },
+    });
+    dragDrop.bind(element);
+  }
+
+  isExpectedPendingUpdate(newData: GmScreenConfig, pendingCellRefresh: PendingCellRefresh) {
+    const { expectedData } = pendingCellRefresh;
+    if (!expectedData) {
+      return false;
+    }
+
+    return (
+      Object.keys(foundry.utils.diffObject(expectedData, newData)).length === 0 &&
+      Object.keys(foundry.utils.diffObject(newData, expectedData)).length === 0
+    );
+  }
+
   async refresh() {
     const newData = getGame().settings.get(MODULE_ID, MySettings.gmScreenConfig);
     const oldData = foundry.utils.deepClone(this.data);
@@ -731,6 +895,22 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     });
 
     this.data = newData;
+    const { pendingCellRefresh } = this;
+    this.pendingCellRefresh = undefined;
+
+    if (
+      pendingCellRefresh &&
+      this.isExpectedPendingUpdate(newData, pendingCellRefresh) &&
+      (await this.refreshGridCell(
+        pendingCellRefresh.gridId,
+        pendingCellRefresh.entryId,
+        pendingCellRefresh.cellId,
+        pendingCellRefresh.entry
+      ))
+    ) {
+      log(false, 'refreshed only the changed cell', pendingCellRefresh);
+      return;
+    }
 
     if (Object.keys(diffData).length) {
       if (
@@ -773,6 +953,15 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
         log(false, 'not rerendering because none of my visible grids changed');
         return;
       }
+
+      const changedGridIsEntriesOnly =
+        diffGridIds.length === 1 &&
+        Object.keys(diffData.grids?.[diffGridIds[0]] ?? {}).every((key) => key === 'entries' || key === 'cssClass');
+
+      if (changedGridIsEntriesOnly && oldAndNewGridIdsAreEqual && (await this.refreshGrid(diffGridIds[0]))) {
+        log(false, 'refreshed only the grid with changed entries', { gridId: diffGridIds[0] });
+        return;
+      }
     }
 
     if (!this.displayDrawer) {
@@ -783,13 +972,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
   }
 
   async _onRender() {
-    const dragDrop = new foundry.applications.ux.DragDrop({
-      dragSelector: '.gm-screen-grid-cell',
-      dropSelector: '.gm-screen-grid-cell',
-      permissions: { dragstart: () => !!getGame().user?.isGM, drop: () => !!getGame().user?.isGM },
-      callbacks: { drop: this._onDrop.bind(this) },
-    });
-    dragDrop.bind(this.element);
+    this.bindGridDragDrop(this.element);
 
     const dragDropTabs = new foundry.applications.ux.DragDrop({
       dragSelector: '.gm-screen-tabs button',
@@ -825,29 +1008,31 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     this.injectCellContents();
     this.updateClassesAndFixButtons();
 
-    // populate the --grid-cell-width variable
-    const vanillaGridElement = document.querySelector('.gm-screen-grid');
+    this.updateGridCellWidths();
+  }
+
+  updateGridCellWidths(element: HTMLElement = this.element) {
+    const vanillaGridElement = this.element.querySelector('.gm-screen-grid');
     if (!vanillaGridElement) {
       return;
     }
-    const vanillaGridElementStyles = getComputedStyle(vanillaGridElement);
-    const cols = vanillaGridElementStyles['grid-template-columns'].split(' ');
-    const colWidth = cols[0];
 
-    this.element.querySelectorAll('.gm-screen-grid').forEach((gridElement) => {
-      if (!(gridElement instanceof HTMLElement)) {
-        return;
+    const vanillaGridElementStyles = getComputedStyle(vanillaGridElement);
+    const colWidth = vanillaGridElementStyles['grid-template-columns'].split(' ')[0];
+
+    element.querySelectorAll('.gm-screen-grid').forEach((gridElement) => {
+      if (gridElement instanceof HTMLElement) {
+        gridElement.style.setProperty('--grid-cell-width', colWidth);
       }
-      gridElement.style.setProperty('--grid-cell-width', colWidth);
     });
   }
 
-  addListeners() {
-    this.element.querySelectorAll('.gm-screen-actions button, .gm-screen-grid-cell-header a').forEach((btn) => {
+  addListeners(element: HTMLElement = this.element) {
+    element.querySelectorAll('.gm-screen-actions button, .gm-screen-grid-cell-header a').forEach((btn) => {
       btn.addEventListener('click', this.handleClickEvent.bind(this));
     });
 
-    this.element.querySelector('.gm-screen-button')?.addEventListener('contextmenu', async () => {
+    element.querySelector('.gm-screen-button')?.addEventListener('contextmenu', async () => {
       if (!getGame().user?.isGM) {
         return;
       }
@@ -1249,8 +1434,12 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     return this.apps[cellId];
   }
 
-  injectCellContents() {
-    this.element.querySelectorAll('[data-entity-uuid]').forEach((gridEntry) => {
+  injectCellContents(element: HTMLElement = this.element) {
+    const gridEntries = element.matches('[data-entity-uuid]')
+      ? [element, ...element.querySelectorAll('[data-entity-uuid]')]
+      : element.querySelectorAll('[data-entity-uuid]');
+
+    gridEntries.forEach((gridEntry) => {
       try {
         if (!(gridEntry instanceof HTMLElement)) {
           return;
@@ -1307,7 +1496,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
     });
 
     // set some CSS Variables for child element use
-    updateCSSPropertyVariable(this.element, '.gm-screen-grid-cell', 'width', '--this-cell-width');
+    updateCSSPropertyVariable(element, '.gm-screen-grid-cell', 'width', '--this-cell-width');
   }
 
   /**
@@ -1445,6 +1634,6 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
       isDndNpcStatBlock: false,
     };
 
-    await this.addEntryToActiveGrid(newEntry);
+    await this.addEntryToActiveGrid(newEntry, gridCell.id);
   }
 }
