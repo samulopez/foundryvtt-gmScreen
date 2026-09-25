@@ -73,6 +73,6 @@ export class CompactJournalEntryPageDisplay
       return super.close(...args);
     }
     // prevent closing if esc is pressed
-    return this;
+    return Promise.resolve(this);
   }
 }
