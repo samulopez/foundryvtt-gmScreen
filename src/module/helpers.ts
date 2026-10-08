@@ -92,8 +92,8 @@ export function getUserCellConfigurationInput(
           callback: (_event, button, dialog) => {
             const html = dialog.element;
             const formValues = {
-              newSpanRows: Number(html.querySelector('[name="spanRows"]')?.value),
-              newSpanCols: Number(html.querySelector('[name="spanCols"]')?.value),
+              newSpanRows: Number(html.querySelector<HTMLInputElement>('[name="spanRows"]')?.value),
+              newSpanCols: Number(html.querySelector<HTMLInputElement>('[name="spanCols"]')?.value),
             };
 
             log(false, 'dialog formValues', formValues);
