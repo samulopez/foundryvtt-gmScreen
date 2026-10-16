@@ -16,11 +16,16 @@ $transition-timing: 400ms;
   --gm-screen-background: var(--color-cool-5-90);
   --gm-screen-button-text-color: var(--color-light-3);
   --gm-screen-button-border-color: var(--color-light-5);
+  --gm-window-background: var(--color-cool-5-90);
 
   &.gm-theme-light {
     --gm-screen-background: url(../../../ui/parchment.jpg);
     --gm-screen-button-text-color: var(--color-dark-1);
     --gm-screen-button-border-color: var(--color-dark-5);
+  }
+
+  &.theme-light {
+    --gm-window-background: url(../../../ui/parchment.jpg);
   }
 
   &.gm-screen-drawer {
@@ -78,6 +83,7 @@ $transition-timing: 400ms;
     > .window-content {
       padding: 0;
       height: 100%;
+      background: var(--gm-window-background);
     }
   }
 
