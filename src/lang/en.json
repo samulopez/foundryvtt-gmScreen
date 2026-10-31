@@ -56,6 +56,25 @@
       "display-as-drawer": {
         "Name": "Display as Drawer",
         "Hint": "Display the GM Screen as a drawer on the bottom of the screen, as opposed to a normal dialog. If you want to use PopOut, set this to false."
+      },
+      "transfer": {
+        "Export": "Export Settings",
+        "Import": "Import Settings",
+        "Hint": "Export this world's GM Screen setup as a JSON file or import one from another world.",
+        "InvalidFile": "This file is not a valid GM Screen export.",
+        "SystemMismatch": "This export was created for a different game system and cannot be imported.",
+        "MissingDocumentsExported": "The settings were exported, but some referenced documents could not be included.",
+        "ExportComplete": "GM Screen settings exported.",
+        "ExportFailed": "GM Screen settings could not be exported.",
+        "ConfirmTitle": "Import GM Screen Settings",
+        "ConfirmContent": "This will overwrite this world's GM Screen layout, default rows, and default columns. Referenced documents will be added as new copies and will not overwrite existing documents.",
+        "ExternalFilesHint": "Image files are not included and must be available at the same paths in this world.",
+        "ImportDocuments": "Also import copies of the referenced documents",
+        "ConfirmImport": "Import",
+        "MissingDocumentsImported": "Settings imported. Some referenced documents were not included in the file and may not work in this world.",
+        "ImportComplete": "GM Screen settings imported.",
+        "ImportFailed": "GM Screen settings could not be imported. No settings were changed.",
+        "ImportRollbackFailed": "The import failed and Foundry could not remove every change. Check the world settings and imported documents."
       }
     },
     "warnings": {

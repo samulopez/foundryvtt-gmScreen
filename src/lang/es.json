@@ -60,6 +60,25 @@
       "display-as-drawer": {
         "Name": "Mostrar como bandeja",
         "Hint": "Muestra la pantalla del GM como una bandeja en la parte inferior de la pantalla, en lugar de una ventana de diálogo normal. Si quieres utilizar PopOut!, establece esta opción a falso"
+      },
+      "transfer": {
+        "Export": "Exportar ajustes",
+        "Import": "Importar ajustes",
+        "Hint": "Exporta la configuración de la pantalla del director de este mundo a JSON o importa la de otro mundo.",
+        "InvalidFile": "El archivo no es una exportación válida de GM Screen.",
+        "SystemMismatch": "Esta exportación se creó para otro sistema de juego y no se puede importar.",
+        "MissingDocumentsExported": "Se exportaron los ajustes, pero no se pudieron incluir algunos documentos referenciados.",
+        "ExportComplete": "Se exportaron los ajustes de GM Screen.",
+        "ExportFailed": "No se pudieron exportar los ajustes de GM Screen.",
+        "ConfirmTitle": "Importar ajustes de GM Screen",
+        "ConfirmContent": "Esto sobrescribirá la distribución, las filas predeterminadas y las columnas predeterminadas de GM Screen de este mundo. Los documentos referenciados se añadirán como copias nuevas y no sobrescribirán los existentes.",
+        "ExternalFilesHint": "Los archivos de imagen no se incluyen y deben estar disponibles en las mismas rutas de este mundo.",
+        "ImportDocuments": "Importar también copias de los documentos referenciados",
+        "ConfirmImport": "Importar",
+        "MissingDocumentsImported": "Se importaron los ajustes. Algunos documentos referenciados no estaban en el archivo y podrían no funcionar en este mundo.",
+        "ImportComplete": "Se importaron los ajustes de GM Screen.",
+        "ImportFailed": "No se pudieron importar los ajustes de GM Screen. No se cambió ningún ajuste.",
+        "ImportRollbackFailed": "La importación falló y Foundry no pudo deshacer todos los cambios. Revisa los ajustes del mundo y los documentos importados."
       }
     },
     "warnings": {

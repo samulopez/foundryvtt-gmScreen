@@ -68,6 +68,10 @@ Alternatively, you can manually install the module by following these steps:
 
 Note that changing the grid dimensions after populating the grid might cause unexpected results, and odds are you will have to clear the grid and repopulate things.
 
+### Transferring a screen
+
+The screen settings can be exported and imported along with the supported documents placed in its cells. Documents linked only from within those documents are not included automatically. When documents are imported, absolute references to other included documents are rewritten in UUID-named fields, `@UUID` and `@Embed` links, and `data-uuid` attributes. Journal pages receive new IDs, so relative links that refer to their old IDs may need to be fixed manually. Legacy links and references stored in other system- or module-specific formats may also need manual repair. External files are not included.
+
 ### Tab Configuration
 
 ![Screenshot of the GM Screen Tab Configuration](readme-img/tab-config.png)
