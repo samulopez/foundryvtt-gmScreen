@@ -56,6 +56,25 @@
       "display-as-drawer": {
         "Name": "Wyświetlaj jako panel",
         "Hint": "Wyświetlaj ekran MG jako panel na dole ekranu zamiast normalnego okna dialogowego. Jeśli chcesz użyć osobnego okna, ustaw jako fałsz."
+      },
+      "transfer": {
+        "Export": "Eksportuj ustawienia",
+        "Import": "Importuj ustawienia",
+        "Hint": "Wyeksportuj konfigurację ekranu MG tego świata do pliku JSON lub zaimportuj ją z innego świata.",
+        "InvalidFile": "Ten plik nie jest prawidłowym eksportem GM Screen.",
+        "SystemMismatch": "Ten eksport został utworzony dla innego systemu gry i nie można go zaimportować.",
+        "MissingDocumentsExported": "Ustawienia wyeksportowano, ale nie udało się dołączyć niektórych wskazanych dokumentów.",
+        "ExportComplete": "Wyeksportowano ustawienia GM Screen.",
+        "ExportFailed": "Nie udało się wyeksportować ustawień GM Screen.",
+        "ConfirmTitle": "Importuj ustawienia GM Screen",
+        "ConfirmContent": "Spowoduje to zastąpienie układu GM Screen oraz domyślnej liczby wierszy i kolumn w tym świecie. Wskazane dokumenty zostaną dodane jako nowe kopie i nie zastąpią istniejących dokumentów.",
+        "ExternalFilesHint": "Pliki obrazów nie są dołączane i muszą być dostępne w tym świecie pod tymi samymi ścieżkami.",
+        "ImportDocuments": "Importuj również kopie wskazanych dokumentów",
+        "ConfirmImport": "Importuj",
+        "MissingDocumentsImported": "Zaimportowano ustawienia. Niektórych wskazanych dokumentów nie było w pliku i mogą nie działać w tym świecie.",
+        "ImportComplete": "Zaimportowano ustawienia GM Screen.",
+        "ImportFailed": "Nie udało się zaimportować ustawień GM Screen. Nie zmieniono ustawień.",
+        "ImportRollbackFailed": "Import nie powiódł się i Foundry nie mogło usunąć wszystkich zmian. Sprawdź ustawienia świata i zaimportowane dokumenty."
       }
     },
     "warnings": {

@@ -56,6 +56,25 @@
       "display-as-drawer": {
         "Name": "Als Schublade anzeigen",
         "Hint": "Zeigt den SL Schirm als Schublade am unteren Rand des Bildschirms an, statt als normaler Dialog. Wenn du PopOut verwenden möchtest, setze dies auf falsch."
+      },
+      "transfer": {
+        "Export": "Einstellungen exportieren",
+        "Import": "Einstellungen importieren",
+        "Hint": "Exportiere die GM-Screen-Einrichtung dieser Welt als JSON-Datei oder importiere sie aus einer anderen Welt.",
+        "InvalidFile": "Diese Datei ist kein gültiger GM-Screen-Export.",
+        "SystemMismatch": "Dieser Export wurde für ein anderes Spielsystem erstellt und kann nicht importiert werden.",
+        "MissingDocumentsExported": "Die Einstellungen wurden exportiert, aber einige referenzierte Dokumente konnten nicht hinzugefügt werden.",
+        "ExportComplete": "GM-Screen-Einstellungen exportiert.",
+        "ExportFailed": "GM-Screen-Einstellungen konnten nicht exportiert werden.",
+        "ConfirmTitle": "GM-Screen-Einstellungen importieren",
+        "ConfirmContent": "Dies überschreibt das GM-Screen-Layout sowie die Standardzeilen und -spalten dieser Welt. Referenzierte Dokumente werden als neue Kopien hinzugefügt und überschreiben keine vorhandenen Dokumente.",
+        "ExternalFilesHint": "Bilddateien sind nicht enthalten und müssen in dieser Welt unter denselben Pfaden verfügbar sein.",
+        "ImportDocuments": "Auch Kopien der referenzierten Dokumente importieren",
+        "ConfirmImport": "Importieren",
+        "MissingDocumentsImported": "Einstellungen importiert. Einige referenzierte Dokumente waren nicht in der Datei enthalten und funktionieren möglicherweise nicht in dieser Welt.",
+        "ImportComplete": "GM-Screen-Einstellungen importiert.",
+        "ImportFailed": "GM-Screen-Einstellungen konnten nicht importiert werden. Einstellungen wurden nicht geändert.",
+        "ImportRollbackFailed": "Der Import ist fehlgeschlagen und Foundry konnte nicht alle Änderungen entfernen. Überprüfe die Welteinstellungen und importierten Dokumente."
       }
     },
     "warnings": {

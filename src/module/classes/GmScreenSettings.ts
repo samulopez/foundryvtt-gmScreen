@@ -2,6 +2,9 @@ import { getGame, getLocalization, log } from '../helpers';
 import { MODULE_ABBREV, MODULE_ID, MyKeybindings, MySettings, TEMPLATES } from '../constants';
 import { GmScreenConfig } from '../../gridTypes';
 
+import { ImportSettingsAction } from './ImportSettingsAction';
+import { ExportSettingsAction } from './ExportSettingsAction';
+
 const defaultGmScreenConfig: GmScreenConfig = {
   activeGridId: 'default',
   grids: {
@@ -140,6 +143,24 @@ export class GmScreenSettings extends foundry.applications.api.HandlebarsApplica
           getGame().settings.set(MODULE_ID, MySettings.gmScreenConfig, defaultGmScreenConfig);
         }
       },
+    });
+
+    getGame().settings.registerMenu(MODULE_ID, 'export-settings', {
+      name: `${MODULE_ABBREV}.settings.transfer.Export`,
+      label: `${MODULE_ABBREV}.settings.transfer.Export`,
+      hint: `${MODULE_ABBREV}.settings.transfer.Hint`,
+      icon: 'fas fa-file-export',
+      type: ExportSettingsAction,
+      restricted: true,
+    });
+
+    getGame().settings.registerMenu(MODULE_ID, 'import-settings', {
+      name: `${MODULE_ABBREV}.settings.transfer.Import`,
+      label: `${MODULE_ABBREV}.settings.transfer.Import`,
+      hint: `${MODULE_ABBREV}.settings.transfer.Hint`,
+      icon: 'fas fa-file-import',
+      type: ImportSettingsAction,
+      restricted: true,
     });
 
     getGame().keybindings?.register(MODULE_ID, MyKeybindings.openCloseScreen, {
