@@ -1192,7 +1192,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           this.cellId = cellId;
 
           const cell = document.getElementById(this.cellId.replace('#', ''));
-          if (!cell) {
+          if (!cell || cell.dataset.entityUuid !== entityUuid) {
             return;
           }
           const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
@@ -1273,7 +1273,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
           this.cellId = cellId;
 
           const cell = document.getElementById(this.cellId.replace('#', ''));
-          if (!cell) {
+          if (!cell || cell.dataset.entityUuid !== entityUuid) {
             return;
           }
           const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
@@ -1365,7 +1365,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
         CompactDocumentSheet._injectHTML = function injectHTML(html) {
           const cell = document.getElementById(this.cellId.replace('#', ''));
-          if (!cell) {
+          if (!cell || cell.dataset.entityUuid !== entityUuid) {
             return;
           }
           const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
@@ -1399,7 +1399,7 @@ export class GmScreenApplication extends foundry.applications.api.HandlebarsAppl
 
         CompactDocumentSheet._replaceHTML = function replaceHTML(element, html) {
           const cell = document.getElementById(this.cellId.replace('#', ''));
-          if (!cell) {
+          if (!cell || cell.dataset.entityUuid !== entityUuid) {
             return;
           }
           const titleElement = cell.querySelector('.gm-screen-grid-cell-title');
